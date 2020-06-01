@@ -42,6 +42,10 @@ urlpatterns = [
     
     # PEDIDO
     path('empresa/sucursal/pedido/crear_f/', views.crear_pedido_f, name='Crear Pedido'),
+    
+    path('empresa/sucursal/pedido/crear_f/empresario/', views.crear_pedido_empresario, name='Crear Pedido para Empresarios'),
+    path('empresa/sucursal/pedido/<int:id_pedido>/editar_f/empresario/', views.editar_pedido_empresario, name='Editar Pedido para Empresarios'),
+
     path('empresa/sucursal/pedido/<int:id_pedido>/editar_f/', views.editar_pedido_f, name='Editar Pedido'),
     path('empresa/sucursal/pedido/<int:id_pedido>/curso/', views.cambiar_pedido_en_curso, name='Cambiar pedido a en curso'),
     path('empresa/sucursal/pedido/<int:id_pedido>/finalizado/', views.cambiar_pedido_en_finalizado, name='Cambiar pedido a finalizado'),

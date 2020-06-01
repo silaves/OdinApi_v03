@@ -1274,6 +1274,78 @@ def get_pedidos_by_repartidor_rango_paginacion_cursor(request,estado):
 
 
 
+# PEDIDOS PARA EMPRESARIO
+
+# crear pedido
+@swagger_auto_schema(method="POST",request_body=CrearPedidoSerializer_Empresario,responses={200:'Se ha creado el pedido correctamente'},
+    operation_id="Crear Pedido - Solo Empresarios", operation_description="No hay productos")
+@api_view(['POST'])
+@permission_classes((IsAuthenticated,))
+def crear_pedido_empresario(request):
+    usuario = get_user_by_token(request)
+    # validar que el usuario sea parte del grupo cliente
+    if not is_member(usuario,'empresario'):
+        raise PermissionDenied('No esta autorizado')
+    obj = CrearPedidoSerializer_Empresario(data=request.data)
+    obj.is_valid(raise_exception=True)
+
+    if usuario.id != obj.validated_data['sucursal'].empresa.empresario.id:
+        raise PermissionDenied('Solo el empresario de la sucursal puede realizar este tipo de pedidos.')
+
+    pedido = Pedido()
+    pedido.cliente = usuario
+    pedido.total = Decimal(0.0)
+    pedido.estado = 'A'
+    pedido.sucursal = obj.validated_data['sucursal']
+    try:
+        dir = obj.validated_data['ubicacion']
+    except:
+        dir = ''
+    pedido.ubicacion = dir
+    pedido.save()
+
+    return Response({'mensaje':'Se ha creado el pedido correctamente'})
+
+
+# editar pedido asd
+@swagger_auto_schema(method="POST",request_body=EditarPedidoSerializer_Empresario,responses={200:'Se ha modificado el pedido correctamente'},
+    operation_id="Editar Pedido - Empresario", operation_description="Modifica los campos, ubicacion, total de un producto.")
+@api_view(['POST'])
+@permission_classes((IsAuthenticated,))
+def editar_pedido_empresario(request,id_pedido):
+    usuario = get_user_by_token(request)
+    # validar que el usuario sea parte del grupo cliente
+    if not is_member(usuario,'empresario'):
+        raise PermissionDenied('No esta autorizado')
+    try:
+        pedido = Pedido.objects.get(pk=id_pedido)
+    except:
+        raise NotFound('No se encontro el pedido')
+    
+    obj = EditarPedidoSerializer_Empresario(pedido,data=request.data)
+    obj.is_valid(raise_exception=True)
+    obj.save()
+    # try:
+    #     ubicacion = obj.validated_data['ubicacion']
+    # except:
+    #     ubicacion = pedido.ubicacion
+    
+    
+    # pedido.ubicacion = ubicacion
+    # pedido.save()
+    
+
+    return Response({'mensaje':'Se ha modificado el pedido correctamente'})
+
+
+
+
+
+
+
+
+
+
 
 # FUNCIONES AUXILIARES
 

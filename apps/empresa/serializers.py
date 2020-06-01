@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from django.utils.timezone import make_naive
 
 from rest_framework import serializers
 
@@ -427,6 +428,30 @@ class EditarPedidoSerializer(serializers.ModelSerializer):
         return value
 
 
+# PEDIDOS PARA EMPRESARIOS INI
+
+# CREAR PEDDIDOS EMPRESARIO
+
+class CrearPedidoSerializer_Empresario(serializers.ModelSerializer):
+
+    class Meta:
+        model = Pedido
+        fields = ('sucursal','ubicacion')
+
+
+
+
+#asd
+class EditarPedidoSerializer_Empresario(serializers.ModelSerializer):
+    total = serializers.DecimalField(max_digits=7, decimal_places=1, required=False)
+
+    class Meta:
+        model = Pedido
+        fields = ('ubicacion','total')
+
+# FIN
+
+
 
 
 class PedidoEmpresaSerializer(serializers.ModelSerializer):
@@ -545,7 +570,7 @@ class ShowPedido_Serializer(serializers.Serializer):
         return {
             'id':instance.id,
             'estado':instance.estado,
-            'fecha':instance.fecha,
+            'fecha':make_naive(instance.fecha),
             'ubicacion':instance.ubicacion,
             'total':str(instance.total),
             'sucursal':{
@@ -644,7 +669,7 @@ class ShowPedido_forCliente_Serializer(serializers.Serializer):
         return {
             'id':instance.id,
             'estado':instance.estado,
-            'fecha':instance.fecha,
+            'fecha':make_naive(instance.fecha),
             'ubicacion':instance.ubicacion,
             'total':str(instance.total),
             'sucursal':instance.sucursal.id,
