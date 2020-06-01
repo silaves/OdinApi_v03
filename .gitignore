@@ -1,0 +1,5 @@
+/media
+/static
+/temp
+*.pyc
+*/__pycache__*
