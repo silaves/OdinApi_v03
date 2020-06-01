@@ -26,7 +26,7 @@ from .serializers import (RegistrarseSerializer, LoginSerializer, UsuarioSeriali
     UsuarioNormalSerializer,PerfilNormalSerializer, ChangePasswordSerializer, UsuarioEditResponse,CrearEmpresario_Serializer)
 from . import serializers
 from .renderers import UserJSONRenderer
-from .models import Usuario, Perfil
+from .models import Usuario, Perfil, VersionesAndroidApp
 
 
 
@@ -479,6 +479,22 @@ def crear_empresario(request):
 
 
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_last_version(request, app):
+    apk = VersionesAndroidApp.objects.latest('creado')
+    if app == 'U':
+        version = apk.usuario
+    elif app == 'E':
+        version = apk.empresario
+    elif app == 'R':
+        version = apk.repartidor
+    else:
+        raise NotFound('No se encontro la ruta')
+    return Response({'version':version})
+
+
+
 
 # funcion para otener el usuario de acuerdo al token del request
 def get_user_by_token(request):
@@ -490,5 +506,3 @@ def get_user_by_token(request):
 # verificar si un usuario pertence a un grupo
 def is_member(user, group_name):
     return user.groups.filter(name=group_name).exists()
-
-

@@ -120,3 +120,15 @@ class Horario(models.Model):
 
     # def __str__(self):
     #     return self.id
+
+
+class VersionesAndroidApp(models.Model):
+    usuario = models.IntegerField(default=1, blank=False)
+    empresario = models.IntegerField(default=1,blank=False)
+    repartidor = models.IntegerField(default=1,blank=False)
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'Versiones_AndroidApp'
+        verbose_name = _('Version de Aplicacion Android')
+        verbose_name_plural = _('0. Versiones de Aplicaciones Android')

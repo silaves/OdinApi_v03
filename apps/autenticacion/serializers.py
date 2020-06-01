@@ -277,3 +277,7 @@ class CrearEmpresario_Serializer(serializers.ModelSerializer):
             pass
         # Use the `create_user` method we wrote earlier to create a new user.
         return Usuario.objects.create_user(**validated_data)
+
+
+
+# class ShowVersionAndroidApp(serializers.Serializer):

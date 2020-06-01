@@ -35,7 +35,7 @@ schema_view = get_schema_view(
    permission_classes=(permissions.AllowAny,),
 )
 admin.site.site_header = 'ODIN'
-# admin.site.site_title = 'My Site Title'
+admin.site.site_title = 'Odin Company'
 # admin.site.index_title = "<your_index_title>"
 
 urlpatterns = [

@@ -9,7 +9,7 @@ from django.db.models.sql.datastructures import Join
 from social_django.models import Association, Nonce, UserSocialAuth
 
 from .forms import CustomUserCreationForm, CustomUserChangeForm, GroupForm
-from .models import Usuario, Perfil, Horario
+from .models import Usuario, Perfil, Horario,VersionesAndroidApp
 
 
 class PerfilInline(admin.StackedInline):
@@ -107,6 +107,7 @@ class GroupAdmin(admin.ModelAdmin):
 
 
 
+admin.site.register(VersionesAndroidApp)
 admin.site.register(Usuario, CustomUserAdmin)
 # admin.site.register(Permission)
 admin.site.unregister(Group)

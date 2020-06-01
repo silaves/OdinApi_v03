@@ -24,5 +24,5 @@ urlpatterns = [
     path('taxista/inactivos/', views.getTaxistas_inactivos),
 
     path('empresario/crear/', views.crear_empresario),
-
+    path('android/<str:app>/', views.get_last_version),
 ]
