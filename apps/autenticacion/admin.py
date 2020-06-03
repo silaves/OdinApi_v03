@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from django.db import models
 from django import forms
@@ -6,10 +7,12 @@ from django.contrib.admin.widgets import AdminTimeWidget
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group, Permission
 from django.db.models.sql.datastructures import Join
+from django.forms.models import BaseInlineFormSet
+
 from social_django.models import Association, Nonce, UserSocialAuth
 
 from .forms import CustomUserCreationForm, CustomUserChangeForm, GroupForm
-from .models import Usuario, Perfil, Horario,VersionesAndroidApp
+from .models import Usuario, Perfil, Horario,VersionesAndroidApp, Ciudad, EncargadoCiudad, TarifaCostoEnvio
 
 
 class PerfilInline(admin.StackedInline):
@@ -41,7 +44,7 @@ class HorarioInline(admin.StackedInline):
     form = HorarioForm
     fields = ('entrada', 'salida','estado' )
     can_delete = False
-    extra = 1
+    extra = 0
 
 class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
@@ -92,12 +95,13 @@ class CustomUserAdmin(UserAdmin):
             return str_groups[:len(str_groups)-2]
 
 
+
+# GROUP PROXY PARA CAMBIAR VERBOSE_NAME_PLURAL, ESTO GENERA UNA MIGRACION EN LOS LIB DE CONTRIB DE DJANGO TOMAR EN CUENTA
 class Grupo(Group):
     class Meta:
         proxy = True
         app_label = 'auth'
         verbose_name_plural = '3. Grupos'
-
 
 class GroupAdmin(admin.ModelAdmin):
     form = GroupForm
@@ -107,11 +111,41 @@ class GroupAdmin(admin.ModelAdmin):
 
 
 
+
+# CIUDAD
+class EncargadoCiudadForm(forms.ModelForm):
+    class Meta:
+        model = EncargadoCiudad
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(EncargadoCiudadForm, self).__init__(*args, **kwargs)
+        try:
+            self.fields['usuario'].queryset = Usuario.objects.filter(groups__name=settings.GRUPO_ENCARGADO_CIUDAD)
+        except (AttributeError, ObjectDoesNotExist):
+            pass
+
+class EncargadoCiudadAdmin(admin.StackedInline):
+    model = EncargadoCiudad
+    form = EncargadoCiudadForm
+    extra = 0
+
+class TarifaCostoEnvioCiudadAdmin(admin.StackedInline):
+    model = TarifaCostoEnvio
+    extra = 0
+
+class CiudadAdmin(admin.ModelAdmin):
+    inlines = [TarifaCostoEnvioCiudadAdmin,EncargadoCiudadAdmin,]
+    list_display = ('nombre','id','estado')
+
+
+
 admin.site.register(VersionesAndroidApp)
 admin.site.register(Usuario, CustomUserAdmin)
 # admin.site.register(Permission)
 admin.site.unregister(Group)
 admin.site.register(Grupo, GroupAdmin)
+admin.site.register(Ciudad,CiudadAdmin)
 
 admin.site.unregister(Association)
 admin.site.unregister(Nonce)

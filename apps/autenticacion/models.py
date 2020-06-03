@@ -13,6 +13,7 @@ from apps.autenticacion.managers import CustomUserManager
 
 class Ciudad(models.Model):
     nombre = models.CharField(max_length=40, unique=True)
+    costo_min = models.DecimalField(_('Costo minimo'),max_digits=7, decimal_places=1, blank=False,help_text='Costo minimo de un envio en Bs.')
     estado = models.BooleanField(default=True)
 
     class Meta:
@@ -132,3 +133,33 @@ class VersionesAndroidApp(models.Model):
         db_table = 'Versiones_AndroidApp'
         verbose_name = _('Version de Aplicacion Android')
         verbose_name_plural = _('0. Versiones de Aplicaciones Android')
+
+
+class EncargadoCiudad(models.Model):
+    usuario = models.ForeignKey(Usuario,on_delete=models.CASCADE)
+    # en caso de que se permite varios encargados por ciudad se quita el OneToOneField por el ForeignKey y en la vista cambiar para devolver en many=True y el query
+    ciudad = models.OneToOneField(Ciudad, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together =  (('usuario','ciudad'),)
+        db_table = 'ENCARGADO_CIUDAD'
+        verbose_name = _('Encargado Region')
+        verbose_name_plural = _('Encargados de Regiones')
+    
+    def __str__(self):
+        return self.usuario.username
+
+
+class TarifaCostoEnvio(models.Model):
+    km_inicial = models.DecimalField(max_digits=7, decimal_places=1, blank=False)
+    costo = models.DecimalField(max_digits=7, decimal_places=1, blank=False)
+    estado = models.BooleanField(default=True)
+    ciudad = models.ForeignKey(Ciudad, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'TARIFA_COSTO_ENVIO'
+        verbose_name = _('Tarifa del Costo del Envio')
+        verbose_name_plural = _('Tarifas de los Costos de Envio')
+    
+    def __str__(self):
+        return 'tarifario'

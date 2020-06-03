@@ -34,7 +34,7 @@ def ver_taxista(request):
         usuario = get_user_by_token(request)
     except:
         return Response({'error':'No se encontro al usuario'})
-    if not is_member(usuario, 'taxista'):
+    if not is_member(usuario, settings.GRUPO_TAXISTA):
         return Response({'error':'El usuario no pertenece al grupo taxista'})
     try:
         movil = Movil.objects.get(taxista=usuario)
@@ -54,7 +54,7 @@ def ver_taxista_id(request, id_usuario):
         usuario = Usuario.objects.get(pk=id_usuario)
     except:
         return Response({'error':'No se encontro al usuario'})
-    if not is_member(usuario, 'taxista'):
+    if not is_member(usuario, settings.GRUPO_TAXISTA):
         return Response({'error':'El usuario no pertenece al grupo taxista'})
     try:
         movil = Movil.objects.get(taxista=usuario)

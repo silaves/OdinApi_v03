@@ -40,7 +40,7 @@ class Empresa(models.Model):
 class Sucursal(models.Model):
     nombre = models.CharField(_('Zona'),max_length=20)
     telefono = models.IntegerField()
-    ubicacion = models.CharField(max_length=255, blank=True, null=True)
+    ubicacion = models.CharField(max_length=255, blank=True, null=True, validators=[validate_latitude_longitude,])
     direccion = models.CharField(max_length=255)
     hora_inicio = models.TimeField(default='15:00:00',blank=True)
     hora_fin = models.TimeField(default='15:00:00',blank=True)
@@ -186,13 +186,15 @@ class Favorito(models.Model):
 
 
 class Pedido(models.Model):
-    total = models.DecimalField(_('asd'),max_digits=7, decimal_places=1, blank=False)
+    total = models.DecimalField(_('Monto Total de productos'),max_digits=7, decimal_places=1, blank=False)
+    costo_envio = models.DecimalField(_('costo de envio'),max_digits=7, decimal_places=1, blank=False)
+    precio_final = models.DecimalField(_('precio final'),max_digits=7, decimal_places=1, blank=False)
     cliente = models.ForeignKey(Usuario, on_delete=models.PROTECT)
     fecha = models.DateTimeField(auto_now_add=True)
     estado = models.CharField(max_length=1, default='N',choices=(
 		('A','Activo'),('E', 'En Curso'),('F', 'Finalizado'),('C', 'Cancelado')
 	))
-    ubicacion = models.CharField(_('Direccion'), max_length=255, blank=True, null=True)
+    ubicacion = models.CharField(_('Ubicacion'), max_length=255, blank=False)
     sucursal = models.ForeignKey(Sucursal, on_delete=models.PROTECT)
     repartidor = models.ForeignKey(Usuario,blank=True,null=True,related_name='repartidor', on_delete=models.CASCADE)
 

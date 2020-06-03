@@ -1,6 +1,7 @@
 import urllib
 from uuid import uuid4
 from django.http import HttpResponseRedirect
+from django.conf import settings
 # from django.core.urlresolvers import reverse
 from .models import Perfil
 from django.contrib.auth.models import Group
@@ -14,7 +15,6 @@ def get_username(strategy, details, social, backend, user=None, *args, **kwargs)
         return
     storage = strategy.storage
     if not user:
-        print('no hay usuario')
         email_as_username = strategy.setting('USERNAME_IS_FULL_EMAIL', False)
         uuid_length = strategy.setting('UUID_LENGTH', 16)
         max_length = storage.user.username_max_length()
@@ -75,7 +75,7 @@ def get_username(strategy, details, social, backend, user=None, *args, **kwargs)
             perfil = Perfil()
             perfil.usuario = user
             perfil.save()
-            grupo = Group.objects.get(name='cliente')
+            grupo = Group.objects.get(name=settings.GRUPO_CLIENTE)
             user.groups.add(grupo)
             user.save()
     return {'username': final_username}

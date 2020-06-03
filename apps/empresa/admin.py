@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib import admin
-from apps.empresa.models import Empresa, Sucursal, Pedido, Combo, Chat_Pedido, Producto, CategoriaEmpresa, Ciudad, CategoriaProducto, FotoProducto
+from apps.empresa.models import Empresa, Sucursal, Pedido, Combo, Chat_Pedido, Producto, CategoriaEmpresa, CategoriaProducto, FotoProducto
 from django.utils.safestring import mark_safe
 
 # @admin.register(CategoriaProducto)
@@ -42,7 +42,7 @@ class PedidoAdmin(admin.ModelAdmin):
 
 admin.site.register(Empresa)
 admin.site.register(Sucursal)
-admin.site.register(Ciudad)
+
 # admin.site.register(Pedido)
 # admin.site.register(Pedido, ProductoAdmin)
 # admin.site.register(Combo, ComboAdmin)

@@ -26,7 +26,7 @@ from .serializers import (RegistrarseSerializer, LoginSerializer, UsuarioSeriali
     UsuarioNormalSerializer,PerfilNormalSerializer, ChangePasswordSerializer, UsuarioEditResponse,CrearEmpresario_Serializer)
 from . import serializers
 from .renderers import UserJSONRenderer
-from .models import Usuario, Perfil, VersionesAndroidApp
+from .models import Usuario, Perfil, VersionesAndroidApp, EncargadoCiudad, Ciudad
 
 
 
@@ -364,7 +364,7 @@ def getTaxistasNoDisponibles(request):
 @permission_classes([IsAuthenticated,])
 def getClientes_activos(request):
     try:
-        clientes = Usuario.objects.filter(is_active=True,groups__name='cliente')
+        clientes = Usuario.objects.filter(is_active=True,groups__name=settings.GRUPO_CLIENTE)
     except:
         return Response({'error':'Hubo un error al cargar los datos'})
     data = PerfilSerializer(clientes, many=True).data
@@ -377,7 +377,7 @@ def getClientes_activos(request):
 @permission_classes([IsAuthenticated,])
 def getClientes_inactivos(request):
     try:
-        clientes = Usuario.objects.filter(is_active=False,groups__name='cliente')
+        clientes = Usuario.objects.filter(is_active=False,groups__name=settings.GRUPO_CLIENTE)
     except:
         return Response({'error':'Hubo un error al cargar los datos'})
     data = PerfilSerializer(clientes, many=True).data
@@ -410,7 +410,7 @@ def getPerfil_empresario(request):
 @permission_classes([IsAuthenticated,])
 def getEmpresarios_activos(request):
     try:
-        empresarios = Usuario.objects.filter(is_active=True,groups__name='empresario')
+        empresarios = Usuario.objects.filter(is_active=True,groups__name=settings.GRUPO_EMPRESARIO)
     except:
         return Response({'error':'Hubo un error al cargar los datos'})
     data = PerfilSerializer(empresarios, many=True).data
@@ -423,7 +423,7 @@ def getEmpresarios_activos(request):
 @permission_classes([IsAuthenticated,])
 def getEmpresarios_inactivos(request):
     try:
-        empresarios = Usuario.objects.filter(is_active=False,groups__name='empresario')
+        empresarios = Usuario.objects.filter(is_active=False,groups__name=settings.GRUPO_EMPRESARIO)
     except:
         return Response({'error':'Hubo un error al cargar los datos'})
     data = PerfilSerializer(empresarios, many=True).data
@@ -438,7 +438,7 @@ def getEmpresarios_inactivos(request):
 @permission_classes([IsAuthenticated,])
 def getTaxistas_activos(request):
     try:
-        taxistas = Usuario.objects.filter(is_active=True,groups__name='taxista')
+        taxistas = Usuario.objects.filter(is_active=True,groups__name=settings.GRUPO_TAXISTA)
     except:
         return Response({'error':'Hubo un error al cargar los datos'})
     data = PerfilSerializer(taxistas, many=True).data
@@ -451,11 +451,30 @@ def getTaxistas_activos(request):
 @permission_classes([IsAuthenticated,])
 def getTaxistas_inactivos(request):
     try:
-        taxistas = Usuario.objects.filter(is_active=False,groups__name='taxista')
+        taxistas = Usuario.objects.filter(is_active=False,groups__name=settings.GRUPO_TAXISTA)
     except:
         return Response({'error':'Hubo un error al cargar los datos'})
     data = PerfilSerializer(taxistas, many=True).data
     return Response(data)
+
+
+
+# get responsable ciudad
+@swagger_auto_schema(method="GET",responses={200:PerfilSerializer},operation_id="Obtener responsable region")
+@api_view(['GET'])
+@permission_classes([IsAuthenticated,])
+def get_responsable_ciudad(request, id_ciudad):
+    if Ciudad.objects.filter(pk=id_ciudad, estado=True).exists() is False:
+        raise NotFound('No se encontro la ciudad o esta inactiva')
+    try:
+        res = EncargadoCiudad.objects.get(ciudad__id=id_ciudad, usuario__is_active=True)
+    except:
+        raise PermissionDenied('No hay un responsable vinculado a la region')
+
+    data = PerfilSerializer(res.usuario).data
+    return Response(data)    
+
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny,])
@@ -467,7 +486,7 @@ def crear_empresario(request):
     except:
         telefono = 0
     usuario = obj.save()
-    grupo = Group.objects.get(name='empresario')
+    grupo = Group.objects.get(name=settings.GRUPO_EMPRESARIO)
     usuario.groups.add(grupo)
     usuario.save()
     perfil = Perfil()

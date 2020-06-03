@@ -394,6 +394,19 @@ class CrearPedidoSerializer(serializers.ModelSerializer):
             if x['producto_final'].sucursal.id != data['sucursal'].id:
                 raise serializers.ValidationError({'productos':'Hay productos(s) que no pertenecen a la sucursal.'})
         return data
+    
+    def validate_ubicacion(self, value):
+        val = value.split(',')
+        try:
+            latitude = Decimal(val[0])
+            longitude = Decimal(val[1])
+        except:
+            raise serializers.ValidationError('Formato incorrecto de ubicacion')
+        if ( latitude >= Decimal(-90) and latitude <= Decimal(90) ) & ( longitude >= Decimal(-180) and longitude <= Decimal(180) ):
+            pass
+        else:
+            raise serializers.ValidationError('Latitud o Longitud incorrecta')
+        return value
 
     def validate_productos(self, value):
         if len(value) < 1:
@@ -573,6 +586,8 @@ class ShowPedido_Serializer(serializers.Serializer):
             'fecha':make_naive(instance.fecha),
             'ubicacion':instance.ubicacion,
             'total':str(instance.total),
+            'costo_envio':str(instance.costo_envio),
+            'precio_final':str(instance.precio_final),
             'sucursal':{
                 'id':instance.sucursal.id,
                 'nombre':instance.sucursal.nombre,
@@ -672,6 +687,8 @@ class ShowPedido_forCliente_Serializer(serializers.Serializer):
             'fecha':make_naive(instance.fecha),
             'ubicacion':instance.ubicacion,
             'total':str(instance.total),
+            'costo_envio':str(instance.costo_envio),
+            'precio_final':str(instance.precio_final),
             'sucursal':instance.sucursal.id,
             'cliente':instance.cliente.id,
             'repartidor':instance.repartidor.id if instance.repartidor is not None else None,

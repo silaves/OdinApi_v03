@@ -1,11 +1,12 @@
 import time as ti
 import json
+import requests
 import jwt
 from datetime import date, datetime, time
 from drf_yasg.utils import swagger_auto_schema
 from urllib.error import HTTPError
 from datetime import timedelta
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP,ROUND_UP,ROUND_DOWN
 from django.utils.timezone import make_aware
 from django.db.models import Q
 from django.shortcuts import render
@@ -31,7 +32,7 @@ from social_core.exceptions import MissingBackend, AuthTokenError, AuthForbidden
 
 from apps.autenticacion.views import permission_required
 from apps.autenticacion.serializers import UsuarioSerializer,PerfilSerializer
-from apps.autenticacion.models import Usuario, Ciudad, Perfil, Horario
+from apps.autenticacion.models import Usuario, Ciudad, Perfil, Horario, TarifaCostoEnvio
 from apps.autenticacion.views import get_user_by_token, is_member
 
 from .models import *
@@ -476,21 +477,29 @@ def getCategoria(request):
 def crear_pedido_f(request):
     usuario = get_user_by_token(request)
     # validar que el usuario sea parte del grupo cliente
-    if not is_member(usuario,'cliente'):
+    if not is_member(usuario, settings.GRUPO_CLIENTE):
         raise PermissionDenied('No esta autorizado')
     obj = CrearPedidoSerializer(data=request.data)
     obj.is_valid(raise_exception=True)
+    # validar ubicaciones
+    
 
     pedido = Pedido()
     pedido.cliente = usuario
     pedido.total = Decimal(0.0)
     pedido.estado = 'A'
-    pedido.sucursal = obj.validated_data['sucursal']
-    try:
-        dir = obj.validated_data['ubicacion']
-    except:
-        dir = ''
-    pedido.ubicacion = dir
+    suc = obj.validated_data['sucursal']
+    pedido.sucursal = suc
+    dire = obj.validated_data['ubicacion']
+    pedido.ubicacion = dire
+    if suc.ubicacion is None:
+        raise PermissionDenied('La sucursal no tiene establecido su ubicacion')
+    costo_envio = calcular_tarifa_repartidor(suc.ubicacion, dire, suc.ciudad.id)
+    if costo_envio is None:
+        raise PermissionDenied('Comunicarse con la sucursal para que establezca los precios de envio')
+    pedido.costo_envio = costo_envio
+    pedido.precio_final = costo_envio
+
     pedido.save()
     for x in obj.validated_data['productos']:
         pf = x['producto_final']
@@ -501,7 +510,8 @@ def crear_pedido_f(request):
         pedido_producto.save()
         pedido.total += (pf.precio * x['cantidad'])
         pedido.save()
-
+    pedido.precio_final += pedido.total
+    pedido.save()
     return Response({'mensaje':'Se ha creado el pedido correctamente'})
 
 
@@ -514,14 +524,14 @@ def crear_pedido_f(request):
 def editar_pedido_f(request,id_pedido):
     usuario = get_user_by_token(request)
     # validar que el usuario sea parte del grupo cliente
-    if not is_member(usuario,'cliente'):
+    if not is_member(usuario,settings.GRUPO_CLIENTE):
         raise PermissionDenied('No esta autorizado')
     try:
         pedido = Pedido.objects.get(pk=id_pedido)
     except:
         raise NotFound('No se encontro el pedido')
     
-    obj = EditarPedidoSerializer(pedido,data=request.data)
+    obj = EditarPedidoSerializer(pedido,data=request.data, partial=True)
     obj.is_valid(raise_exception=True)
 
     try:
@@ -535,21 +545,26 @@ def editar_pedido_f(request,id_pedido):
         is_productos = False
     
     pedido.ubicacion = ubicacion
+    costo_envio = calcular_tarifa_repartidor(pedido.sucursal.ubicacion, ubicacion, pedido.sucursal.ciudad.id)
+    pedido.costo_envio = costo_envio
+    pedido.precio_final = costo_envio
+
     pedido.save()
     if is_productos is True:
         productos = obj.validated_data['productos']
-        pedidosfinal = PedidoProductoFinal.objects.filter(pedido=pedido).delete()
+        pedidosfinal = PedidoProducto.objects.filter(pedido=pedido).delete()
         pedido.total = Decimal(0.0)
         for x in obj.validated_data['productos']:
             pf = x['producto_final']
-            pedido_producto = PedidoProductoFinal()
+            pedido_producto = PedidoProducto()
             pedido_producto.pedido = pedido
             pedido_producto.producto_final = pf
             pedido_producto.cantidad = x['cantidad']
             pedido_producto.save()
             pedido.total += (pf.precio * x['cantidad'])
             pedido.save()
-
+    pedido.precio_final += pedido.total
+    pedido.save()
     return Response({'mensaje':'Se ha modificado el pedido correctamente'})
 
 
@@ -900,7 +915,7 @@ def get_pedidos_by_estado_cliente(request, estado):
 @permission_classes((IsAuthenticated,))
 def get_pedidos_by_estado_cliente_paginacion_cursor(request, estado):
     usuario = get_user_by_token(request)
-    if not is_member(usuario,'cliente'):
+    if not is_member(usuario, settings.GRUPO_CLIENTE):
         return Response({'error':'No esta autorizado'})
     estado = revisar_estado_pedido(estado)
 
@@ -927,7 +942,7 @@ def get_pedidos_by_estado_cliente_paginacion_cursor(request, estado):
 @permission_classes((IsAuthenticated,))
 def get_pedidos_by_estado_cliente_semana(request, estado):
     usuario = get_user_by_token(request)
-    if not is_member(usuario,'cliente'):
+    if not is_member(usuario, settings.GRUPO_CLIENTE):
         return Response({'error':'No esta autorizado'})
     estado = revisar_estado_pedido(estado)
 
@@ -945,7 +960,7 @@ def get_pedidos_by_estado_cliente_semana(request, estado):
 @permission_classes((IsAuthenticated,))
 def get_pedidos_by_estado_cliente_semana_paginacion_cursor(request, estado):
     usuario = get_user_by_token(request)
-    if not is_member(usuario,'cliente'):
+    if not is_member(usuario, settings.GRUPO_CLIENTE):
         return Response({'error':'No esta autorizado'})
     estado = revisar_estado_pedido(estado)
 
@@ -974,7 +989,7 @@ def get_pedidos_by_estado_cliente_semana_paginacion_cursor(request, estado):
 @permission_classes((IsAuthenticated,))
 def get_pedidos_by_estado_cliente_rango(request, estado):
     usuario = get_user_by_token(request)
-    if not is_member(usuario,'cliente'):
+    if not is_member(usuario, settings.GRUPO_CLIENTE):
         raise PermissionDenied('No esta autorizado')
     estado = revisar_estado_pedido(estado)
     fechas = PedidosRangoFecha_Sucursal(data=request.data)
@@ -994,7 +1009,7 @@ def get_pedidos_by_estado_cliente_rango(request, estado):
 @permission_classes((IsAuthenticated,))
 def get_pedidos_by_estado_cliente_rango_paginacion_cursor(request, estado):
     usuario = get_user_by_token(request)
-    if not is_member(usuario,'cliente'):
+    if not is_member(usuario, settings.GRUPO_CLIENTE):
         raise PermissionDenied('No esta autorizado')
     estado = revisar_estado_pedido(estado)
     fechas = PedidosRangoFecha_Sucursal(data=request.data)
@@ -1039,7 +1054,7 @@ def get_pedido(request,id_pedido):
 @permission_classes((IsAuthenticated,))
 def repartidores_by_ciudad(request, id_ciudad):
     # los pedidos se haran por dia laboral
-    usuarios = Usuario.objects.filter(groups__name='repartidor',ciudad__id=id_ciudad)
+    usuarios = Usuario.objects.filter(groups__name=settings.GRUPO_REPARTIDOR, ciudad__id=id_ciudad)
     data = PerfilSerializer(usuarios, many=True).data
     return Response(data)
 
@@ -1072,7 +1087,7 @@ def cambiar_disponibilidad_repartidor(request):
 @permission_classes((IsAuthenticated,))
 def aceptar_pedido(request,id_pedido):
     usuario = get_user_by_token(request)
-    if not is_member(usuario,'repartidor'):
+    if not is_member(usuario, settings.GRUPO_REPARTIDOR):
         return Response({'error':'No esta autorizado'})
     pedido = revisar_pedido(id_pedido)
     validar_repartidor_activo(usuario)
@@ -1096,7 +1111,7 @@ def aceptar_pedido(request,id_pedido):
 @permission_classes((IsAuthenticated,))
 def get_pedidos_for_repartidor(request):
     usuario = get_user_by_token(request)
-    if not is_member(usuario,'repartidor'):
+    if not is_member(usuario, settings.GRUPO_REPARTIDOR):
         raise PermissionDenied('No esta autorizado')
     if usuario.ciudad is None:
         raise PermissionDenied('El usuario no tiene asociado una ciudad')
@@ -1284,7 +1299,7 @@ def get_pedidos_by_repartidor_rango_paginacion_cursor(request,estado):
 def crear_pedido_empresario(request):
     usuario = get_user_by_token(request)
     # validar que el usuario sea parte del grupo cliente
-    if not is_member(usuario,'empresario'):
+    if not is_member(usuario, settings.GRUPO_EMPRESARIO):
         raise PermissionDenied('No esta autorizado')
     obj = CrearPedidoSerializer_Empresario(data=request.data)
     obj.is_valid(raise_exception=True)
@@ -1315,7 +1330,7 @@ def crear_pedido_empresario(request):
 def editar_pedido_empresario(request,id_pedido):
     usuario = get_user_by_token(request)
     # validar que el usuario sea parte del grupo cliente
-    if not is_member(usuario,'empresario'):
+    if not is_member(usuario, settings.GRUPO_EMPRESARIO):
         raise PermissionDenied('No esta autorizado')
     try:
         pedido = Pedido.objects.get(pk=id_pedido)
@@ -1336,6 +1351,53 @@ def editar_pedido_empresario(request,id_pedido):
     
 
     return Response({'mensaje':'Se ha modificado el pedido correctamente'})
+
+
+
+
+# calcular tarifa envio pedido
+
+def calculate_distance(origin, destination):
+    url = settings.URL_MATRIX
+    key = settings.API_KEY_MATRIX
+    result = requests.get(url + 'units=metric&origins='+origin+'&destinations='+destination+'&key='+key)
+    if result:
+        pass
+    else:
+        return Decimal(0)
+    js = result.json()
+    # if js['status'] != 'OK':
+    #     return Decimal(0)
+    try:
+        metros = js['rows'][0]['elements'][0]['distance']['value']
+    except:
+        return Decimal(0)
+    return Decimal(metros/1000)
+
+def calcular_tarifa_repartidor(origin, destination, id_ciudad):
+    kmp = calculate_distance(origin, destination)
+    
+    ciudad = Ciudad.objects.get(pk=id_ciudad)
+    min_tarifa = ciudad.costo_min
+    query = TarifaCostoEnvio.objects.filter(ciudad__id=id_ciudad, estado=True).order_by('-km_inicial')
+    if query.count() <= 0:
+        return None
+    cont = query.count()
+    _next = -1
+    result = Decimal(0)
+    for x in query:
+        if kmp >= x.km_inicial:
+            result = kmp*x.costo
+            if _next > 0:
+                if result > _next:
+                    result = _next
+                if result < min_tarifa:
+                    result = min_tarifa
+            break
+        _next = x.km_inicial*x.costo
+    # result = result.quantize(Decimal('0.1'),ROUND_UP)
+    result = result.quantize(Decimal('0'),ROUND_DOWN)
+    return result
 
 
 

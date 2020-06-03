@@ -178,6 +178,19 @@ BASE_STATIC_FILES = BASE_DIR
 
 
 
+# variables globales
+URL_MATRIX = 'https://maps.googleapis.com/maps/api/distancematrix/json?'
+API_KEY_MATRIX = 'AIzaSyC5UY7bQchG2hQ8FzvWe50DEcF-G3uqkxY'
+
+GRUPO_ENCARGADO_CIUDAD = 'responsable_region'
+GRUPO_EMPRESARIO = 'empresario'
+GRUPO_CLIENTE = 'cliente'
+GRUPO_ADMINISTRADOR = 'administrador'
+GRUPO_REPARTIDOR = 'repartidor'
+GRUPO_TAXISTA = 'taxista'
+
+
+
 
 
 # social configuration
