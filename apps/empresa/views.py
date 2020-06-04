@@ -1290,7 +1290,9 @@ def get_pedidos_by_repartidor_rango_paginacion_cursor(request,estado):
 
 
 # PEDIDOS PARA EMPRESARIO
-
+    
+    
+    
 # crear pedido
 @swagger_auto_schema(method="POST",request_body=CrearPedidoSerializer_Empresario,responses={200:'Se ha creado el pedido correctamente'},
     operation_id="Crear Pedido - Solo Empresarios", operation_description="No hay productos")
@@ -1311,12 +1313,17 @@ def crear_pedido_empresario(request):
     pedido.cliente = usuario
     pedido.total = Decimal(0.0)
     pedido.estado = 'A'
-    pedido.sucursal = obj.validated_data['sucursal']
-    try:
-        dir = obj.validated_data['ubicacion']
-    except:
-        dir = ''
-    pedido.ubicacion = dir
+    suc = obj.validated_data['sucursal']
+    pedido.sucursal = suc
+    dire = obj.validated_data['ubicacion']
+    pedido.ubicacion = dire
+    if suc.ubicacion is None:
+        raise PermissionDenied('La sucursal no tiene establecido su ubicacion')
+    costo_envio = calcular_tarifa_repartidor(suc.ubicacion, dire, suc.ciudad.id)
+    if costo_envio is None:
+        raise PermissionDenied('Comunicarse con la sucursal para que establezca los precios de envio')
+    pedido.costo_envio = costo_envio
+    pedido.precio_final = costo_envio
     pedido.save()
 
     return Response({'mensaje':'Se ha creado el pedido correctamente'})

@@ -62,6 +62,7 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('username', 'password1', 'password2', 'nombres',  'apellidos', 'foto','email', 'is_staff', 'is_active')}
         ),
     )
+    ordering = ('-id',)
     inlines = (PerfilInline, HorarioInline,)
     search_fields = ('username',)
     # ordering = ('username',)
@@ -93,6 +94,34 @@ class CustomUserAdmin(UserAdmin):
             return ""
         else:
             return str_groups[:len(str_groups)-2]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+
+        if request.user.is_superuser:
+            return qs
+        
+        q0 = qs.filter(pk=request.user.id)
+        if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD):
+            q1 = qs.filter(groups__name=settings.GRUPO_EMPRESARIO, ciudad__id=request.user.ciudad.id)
+            return (q0|q1).distinct()
+
+        return q0
+    
+    # def get_exclude(self, request, obj=None):
+    #     excluded = super().get_exclude(request, obj) or [] # get overall excluded fields
+
+    #     if not request.user.is_superuser: # if user is not a superuser
+    #         return excluded + ['user_permissions','is_staff',]#,'perfil__calificacion','perfil__disponibilidad']
+
+    #     return excluded
+    
+    # def get_form(self, request, obj=None, **kwargs):
+    #     if obj:
+    #         self.exclude = ("is_staff",)
+    #     form = super(CustomUserAdmin, self).get_form(request, obj, **kwargs)
+    #     # del form.base_fields['is_staff']
+    #     return form
 
 
 
