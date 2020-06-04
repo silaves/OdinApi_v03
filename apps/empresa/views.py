@@ -1344,8 +1344,24 @@ def editar_pedido_empresario(request,id_pedido):
     except:
         raise NotFound('No se encontro el pedido')
     
-    obj = EditarPedidoSerializer_Empresario(pedido,data=request.data)
+    obj = EditarPedidoSerializer_Empresario(pedido,data=request.data, partial=True)
     obj.is_valid(raise_exception=True)
+
+    try:
+        ubicacion = obj.validated_data['ubicacion']
+    except:
+        ubicacion = pedido.ubicacion
+    
+    try:
+        total = obj.validated_data['total']
+    except:
+        total = pedido.total
+
+    pedido.ubicacion = ubicacion
+    costo_envio = calcular_tarifa_repartidor(pedido.sucursal.ubicacion, ubicacion, pedido.sucursal.ciudad.id)
+    pedido.costo_envio = costo_envio
+    pedido.total = total
+    pedido.precio_final = pedido.total+costo_envio
     obj.save()
     # try:
     #     ubicacion = obj.validated_data['ubicacion']
