@@ -11,15 +11,25 @@ from django.forms.models import BaseInlineFormSet
 
 from social_django.models import Association, Nonce, UserSocialAuth
 
-from .forms import CustomUserCreationForm, CustomUserChangeForm, GroupForm
+from .forms import CustomUserCreationForm, CustomUserChangeForm, GroupForm, UsuarioForm,EditUsuarioForm
 from .models import Usuario, Perfil, Horario,VersionesAndroidApp, Ciudad, EncargadoCiudad, TarifaCostoEnvio
 
 
 class PerfilInline(admin.StackedInline):
     model = Perfil
-    fields = ('telefono', 'calificacion','disponibilidad' )
+    # fields = ('telefono', 'calificacion','disponibilidad' )
     readonly_fields = ('calificacion',)
     can_delete = False
+
+    def get_fields(self, request, obj=None):
+        if obj is None:
+            if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD).exists():
+                return ('telefono',)    
+            return ('telefono', 'calificacion','disponibilidad')
+        else:
+            if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD).exists():
+                return ('telefono',)    
+            return ('telefono', 'calificacion','disponibilidad')
 
 class HorarioForm(forms.ModelForm):
     entrada = forms.TimeField(widget=AdminTimeWidget(format='%H:%M'))
@@ -46,22 +56,23 @@ class HorarioInline(admin.StackedInline):
     can_delete = False
     extra = 0
 
+
 class CustomUserAdmin(UserAdmin):
-    add_form = CustomUserCreationForm
-    form = CustomUserChangeForm
+    add_form = UsuarioForm
+    change_form = EditUsuarioForm
     model = Usuario
     list_display = ('username','id', 'nombres', 'apellidos', 'is_staff', 'is_active', 'get_groups', 'last_login')
     list_filter = ('username', 'is_staff', 'is_active', 'groups')
-    fieldsets = (
-        ('Informacion Personal', {'fields': ('username', 'password', 'nombres', 'apellidos','email','foto','ciudad')}),
-        ('Permisos', {'fields': ('is_staff', 'is_active','groups', 'user_permissions')}),
-    )
-    add_fieldsets =(        
-        (None, {
-            'classes': ('wide',),
-            'fields': ('username', 'password1', 'password2', 'nombres',  'apellidos', 'foto','email', 'is_staff', 'is_active')}
-        ),
-    )
+    # fieldsets = (
+    #     ('Informacion Personal', {'fields': ('username', 'password', 'nombres', 'apellidos','email','foto','ciudad')}),
+    #     ('Permisos', {'fields': ('is_staff', 'is_active','groups', 'user_permissions')}),
+    # )
+    # add_fieldsets =(        
+    #     (None, {
+    #         'classes': ('wide',),
+    #         'fields': ('username', 'password1', 'password2', 'nombres',  'apellidos', 'foto','email', 'is_staff', 'is_active')}
+    #     ),
+    # )
     ordering = ('-id',)
     inlines = (PerfilInline, HorarioInline,)
     search_fields = ('username',)
@@ -95,6 +106,41 @@ class CustomUserAdmin(UserAdmin):
         else:
             return str_groups[:len(str_groups)-2]
 
+    def get_form(self, request, obj=None, **kwargs):
+        if not obj:
+            self.form = self.add_form
+            print('ratamones')
+            self.form.base_fields['ciudad'].queryset = Ciudad.objects.filter(pk=request.user.ciudad.id)
+            # kwargs['exclude'] = ['is_staff',]
+            return self.form
+        else:
+            self.form = self.change_form
+            return self.form
+
+    def get_fieldsets(self,request,obj=None):
+        if obj:
+            if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD).exists():
+                return ([
+                    ('Informacion Personal', {'fields': ('username','password', 'nombres', 'apellidos','email','ciudad')}),
+                    ('Permisos', {'fields': ('is_active','groups')}),
+                ])
+            else:
+                return ([
+                    ('Informacion Personal', {'fields': ('username','password','nombres', 'apellidos','email','ciudad','foto')}),
+                    ('Permisos', {'fields': ('is_staff', 'is_active','groups', 'user_permissions')}),
+                ])
+        else:
+            if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD).exists():
+                return ([
+                    ('Informacion Personal', {'fields': ('username','password1','password2', 'nombres', 'apellidos','email','ciudad')}),
+                    ('Permisos', {'fields': ('is_active','groups')}),
+                ])
+            else:
+                return ([
+                    ('Informacion Personal', {'fields': ('username','password1','password2','nombres', 'apellidos','email','ciudad','foto')}),
+                    ('Permisos', {'fields': ('is_staff', 'is_active','groups', 'user_permissions')}),
+                ])
+    
     def get_queryset(self, request):
         qs = super().get_queryset(request)
 
@@ -107,21 +153,18 @@ class CustomUserAdmin(UserAdmin):
             return (q0|q1).distinct()
 
         return q0
-    
-    # def get_exclude(self, request, obj=None):
-    #     excluded = super().get_exclude(request, obj) or [] # get overall excluded fields
+    # def get_queryset(self, request):
+    #     qs = super().get_queryset(request)
 
-    #     if not request.user.is_superuser: # if user is not a superuser
-    #         return excluded + ['user_permissions','is_staff',]#,'perfil__calificacion','perfil__disponibilidad']
+    #     if request.user.is_superuser:
+    #         return qs
+        
+    #     q0 = qs.filter(pk=request.user.id)
+    #     if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD):
+    #         q1 = qs.filter(groups__name=settings.GRUPO_EMPRESARIO, ciudad__id=request.user.ciudad.id)
+    #         return (q0|q1).distinct()
 
-    #     return excluded
-    
-    # def get_form(self, request, obj=None, **kwargs):
-    #     if obj:
-    #         self.exclude = ("is_staff",)
-    #     form = super(CustomUserAdmin, self).get_form(request, obj, **kwargs)
-    #     # del form.base_fields['is_staff']
-    #     return form
+    #     return q0
 
 
 
@@ -170,6 +213,7 @@ class CiudadAdmin(admin.ModelAdmin):
 
 
 admin.site.register(VersionesAndroidApp)
+# admin.site.unregister(Usuario)
 admin.site.register(Usuario, CustomUserAdmin)
 # admin.site.register(Permission)
 admin.site.unregister(Group)

@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from decimal import Decimal
 
@@ -396,16 +397,29 @@ class CrearPedidoSerializer(serializers.ModelSerializer):
         return data
     
     def validate_ubicacion(self, value):
-        val = value.split(',')
+        if value[0] == '{' and value[len(value)-1] == '}':  
+            try:
+                val = value[:-1].split(',')
+                v1 = val[0].split(':')[1]
+                v2 = val[1].split(':')[1]
+            except:
+                raise serializers.ValidationError('Formato incorrecto de ubicacion')
+        else:
+            raise serializers.ValidationError('Formato incorrecto de ubicacion')
+
         try:
-            latitude = Decimal(val[0])
-            longitude = Decimal(val[1])
+            latitude = Decimal(v1)
+            longitude = Decimal(v2)
         except:
             raise serializers.ValidationError('Formato incorrecto de ubicacion')
-        if ( latitude >= Decimal(-90) and latitude <= Decimal(90) ) & ( longitude >= Decimal(-180) and longitude <= Decimal(180) ):
-            pass
-        else:
-            raise serializers.ValidationError('Latitud o Longitud incorrecta')
+        if latitude.compare(Decimal(-90.0)) == Decimal(-1):
+            raise serializers.ValidationError('Latitud incorrecta')
+        elif latitude.compare(Decimal(90.0)) == Decimal(1):
+            raise serializers.ValidationError('Latitud incorrecta')
+        if longitude.compare(Decimal(-180.0)) == -1:
+            raise serializers.ValidationError('Longitud incorrecta')
+        elif longitude.compare(Decimal(180.0)) == 1:
+            raise serializers.ValidationError('Longitud incorrecta')
         return value
 
     def validate_productos(self, value):
@@ -435,10 +449,49 @@ class EditarPedidoSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError({'productos':'Hay productos(s) que no pertenecen a la sucursal.'})
         return data
 
+    def validate_ubicacion(self, value):
+        if value[0] == '{' and value[len(value)-1] == '}':  
+            try:
+                val = value[:-1].split(',')
+                v1 = val[0].split(':')[1]
+                v2 = val[1].split(':')[1]
+            except:
+                raise serializers.ValidationError('Formato incorrecto de ubicacion')
+        else:
+            raise serializers.ValidationError('Formato incorrecto de ubicacion')
+
+        try:
+            latitude = Decimal(v1)
+            longitude = Decimal(v2)
+        except:
+            raise serializers.ValidationError('Formato incorrecto de ubicacion')
+        if latitude.compare(Decimal(-90.0)) == Decimal(-1):
+            raise serializers.ValidationError('Latitud incorrecta')
+        elif latitude.compare(Decimal(90.0)) == Decimal(1):
+            raise serializers.ValidationError('Latitud incorrecta')
+        if longitude.compare(Decimal(-180.0)) == -1:
+            raise serializers.ValidationError('Longitud incorrecta')
+        elif longitude.compare(Decimal(180.0)) == 1:
+            raise serializers.ValidationError('Longitud incorrecta')
+        return value
+
     def validate_productos(self, value):
         if len(value) < 1:
             raise serializers.ValidationError('El pedido debe tener al menos 1 producto.')
         return value
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # PEDIDOS PARA EMPRESARIOS INI
@@ -446,10 +499,54 @@ class EditarPedidoSerializer(serializers.ModelSerializer):
 # CREAR PEDDIDOS EMPRESARIO
 
 class CrearPedidoSerializer_Empresario(serializers.ModelSerializer):
+    productos = PedidoProductos(required=False,many=True)
 
     class Meta:
         model = Pedido
-        fields = ('sucursal','ubicacion')
+        fields = ('sucursal','ubicacion','productos')
+    
+    def validate(self, data):
+        try:
+            data['productos']
+            is_productos = True
+        except:
+            is_productos = False
+        if is_productos is True:
+            for x in data['productos']:
+                if x['producto_final'].sucursal.id != data['sucursal'].id:
+                    raise serializers.ValidationError({'productos':'Hay productos(s) que no pertenecen a la sucursal.'})
+        return data
+    
+    def validate_ubicacion(self, value):
+        if value[0] == '{' and value[len(value)-1] == '}':  
+            try:
+                val = value[:-1].split(',')
+                v1 = val[0].split(':')[1]
+                v2 = val[1].split(':')[1]
+            except:
+                raise serializers.ValidationError('Formato incorrecto de ubicacion')
+        else:
+            raise serializers.ValidationError('Formato incorrecto de ubicacion')
+        # val = v.split(',')
+        try:
+            latitude = Decimal(v1)
+            longitude = Decimal(v2)
+        except:
+            raise serializers.ValidationError('Formato incorrecto de ubicacion')
+        if latitude.compare(Decimal(-90.0)) == Decimal(-1):
+            raise serializers.ValidationError('Latitud incorrecta')
+        elif latitude.compare(Decimal(90.0)) == Decimal(1):
+            raise serializers.ValidationError('Latitud incorrecta')
+        if longitude.compare(Decimal(-180.0)) == -1:
+            raise serializers.ValidationError('Longitud incorrecta')
+        elif longitude.compare(Decimal(180.0)) == 1:
+            raise serializers.ValidationError('Longitud incorrecta')
+        return value
+
+    def validate_productos(self, value):
+        if len(value) < 1:
+            raise serializers.ValidationError('El pedido debe tener al menos 1 producto.')
+        return value
 
 
 
@@ -457,12 +554,60 @@ class CrearPedidoSerializer_Empresario(serializers.ModelSerializer):
 #asd
 class EditarPedidoSerializer_Empresario(serializers.ModelSerializer):
     total = serializers.DecimalField(max_digits=7, decimal_places=1, required=False)
+    productos = PedidoProductos(required=False,many=True)
 
     class Meta:
         model = Pedido
-        fields = ('ubicacion','total')
+        fields = ('ubicacion','total','productos')
+    
+    def validate(self, data):
+        try:
+            data['productos']
+            is_productos = True
+        except:
+            is_productos = False
+        if is_productos is True:
+            for x in data['productos']:
+                if x['producto_final'].sucursal.id != self.instance.sucursal.id:
+                    raise serializers.ValidationError({'productos':'Hay productos(s) que no pertenecen a la sucursal.'})
+        return data
+    
+    def validate_ubicacion(self, value):
+        if value[0] == '{' and value[len(value)-1] == '}':  
+            try:
+                val = value[:-1].split(',')
+                v1 = val[0].split(':')[1]
+                v2 = val[1].split(':')[1]
+            except:
+                raise serializers.ValidationError('Formato incorrecto de ubicacion')
+        else:
+            raise serializers.ValidationError('Formato incorrecto de ubicacion')
+        # val = v.split(',')
+        try:
+            latitude = Decimal(v1)
+            longitude = Decimal(v2)
+        except:
+            raise serializers.ValidationError('Formato incorrecto de ubicacion')
+        if latitude.compare(Decimal(-90.0)) == Decimal(-1):
+            raise serializers.ValidationError('Latitud incorrecta')
+        elif latitude.compare(Decimal(90.0)) == Decimal(1):
+            raise serializers.ValidationError('Latitud incorrecta')
+        if longitude.compare(Decimal(-180.0)) == -1:
+            raise serializers.ValidationError('Longitud incorrecta')
+        elif longitude.compare(Decimal(180.0)) == 1:
+            raise serializers.ValidationError('Longitud incorrecta')
+        return value
+
+    def validate_productos(self, value):
+        if len(value) < 1:
+            raise serializers.ValidationError('El pedido debe tener al menos 1 producto.')
+        return value
 
 # FIN
+
+
+
+
 
 
 

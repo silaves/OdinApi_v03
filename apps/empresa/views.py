@@ -509,7 +509,7 @@ def crear_pedido_f(request):
         pedido_producto.cantidad = x['cantidad']
         pedido_producto.save()
         pedido.total += (pf.precio * x['cantidad'])
-        pedido.save()
+    pedido.save()
     pedido.precio_final += pedido.total
     pedido.save()
     return Response({'mensaje':'Se ha creado el pedido correctamente'})
@@ -562,7 +562,7 @@ def editar_pedido_f(request,id_pedido):
             pedido_producto.cantidad = x['cantidad']
             pedido_producto.save()
             pedido.total += (pf.precio * x['cantidad'])
-            pedido.save()
+        pedido.save()
     pedido.precio_final += pedido.total
     pedido.save()
     return Response({'mensaje':'Se ha modificado el pedido correctamente'})
@@ -1319,11 +1319,32 @@ def crear_pedido_empresario(request):
     pedido.ubicacion = dire
     if suc.ubicacion is None:
         raise PermissionDenied('La sucursal no tiene establecido su ubicacion')
+    
     costo_envio = calcular_tarifa_repartidor(suc.ubicacion, dire, suc.ciudad.id)
     if costo_envio is None:
         raise PermissionDenied('Comunicarse con la sucursal para que establezca los precios de envio')
     pedido.costo_envio = costo_envio
-    pedido.precio_final = costo_envio
+    pedido.precio_final = pedido.total+costo_envio
+    pedido.save()
+
+    try:
+        obj.validated_data['productos']
+        is_productos = True
+    except:
+        is_productos = False
+
+    if is_productos is True:
+        for x in obj.validated_data['productos']:
+            pf = x['producto_final']
+            pedido_producto = PedidoProducto()
+            pedido_producto.pedido = pedido
+            pedido_producto.producto_final = pf
+            pedido_producto.cantidad = x['cantidad']
+            pedido_producto.save()
+            pedido.total += (pf.precio * x['cantidad'])
+        pedido.save()
+
+    pedido.precio_final = pedido.total+costo_envio
     pedido.save()
 
     return Response({'mensaje':'Se ha creado el pedido correctamente'})
@@ -1359,18 +1380,35 @@ def editar_pedido_empresario(request,id_pedido):
 
     pedido.ubicacion = ubicacion
     costo_envio = calcular_tarifa_repartidor(pedido.sucursal.ubicacion, ubicacion, pedido.sucursal.ciudad.id)
+    if costo_envio is None:
+        raise PermissionDenied('Comunicarse con la sucursal para que establezca los precios de envio')
     pedido.costo_envio = costo_envio
     pedido.total = total
+    # pedido.precio_final = pedido.total+costo_envio
+    pedido.save()
+
+    try:
+        obj.validated_data['productos']
+        is_productos = True
+    except:
+        is_productos = False
+
+    if is_productos is True:
+        productos = obj.validated_data['productos']
+        pedidosfinal = PedidoProducto.objects.filter(pedido=pedido).delete()
+        pedido.total = Decimal(0.0)
+        for x in obj.validated_data['productos']:
+            pf = x['producto_final']
+            pedido_producto = PedidoProducto()
+            pedido_producto.pedido = pedido
+            pedido_producto.producto_final = pf
+            pedido_producto.cantidad = x['cantidad']
+            pedido_producto.save()
+            pedido.total += (pf.precio * x['cantidad'])
+        pedido.save()
+
     pedido.precio_final = pedido.total+costo_envio
-    obj.save()
-    # try:
-    #     ubicacion = obj.validated_data['ubicacion']
-    # except:
-    #     ubicacion = pedido.ubicacion
-    
-    
-    # pedido.ubicacion = ubicacion
-    # pedido.save()
+    pedido.save()
     
 
     return Response({'mensaje':'Se ha modificado el pedido correctamente'})
@@ -1397,8 +1435,16 @@ def calculate_distance(origin, destination):
         return Decimal(0)
     return Decimal(metros/1000)
 
+
+def _converter(value):
+    val = value[:-1].split(',')
+    v1 = val[0].split(':')[1]
+    v2 = val[1].split(':')[1]
+    return v1+','+v2
+
+
 def calcular_tarifa_repartidor(origin, destination, id_ciudad):
-    kmp = calculate_distance(origin, destination)
+    kmp = calculate_distance(_converter(origin), _converter(destination))
     
     ciudad = Ciudad.objects.get(pk=id_ciudad)
     min_tarifa = ciudad.costo_min

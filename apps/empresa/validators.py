@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.conf import settings
@@ -18,13 +19,27 @@ def cantidad_max_value(value):
         raise ValidationError('La cantidad maxima es de 100')
 
 def validate_latitude_longitude(value):
-    val = value.split(',')
+    if value[0] == '{' and value[len(value)-1] == '}':  
+        try:
+            val = value[:-1].split(',')
+            v1 = val[0].split(':')[1]
+            v2 = val[1].split(':')[1]
+        except:
+            raise ValidationError('Formato incorrecto de ubicacion')
+    else:
+        raise ValidationError('Formato incorrecto de ubicacion')
+    # val = value.split(',')
     try:
-        latitude = Decimal(val[0])
-        longitude = Decimal(val[1])
+        latitude = Decimal(v1)
+        longitude = Decimal(v2)
     except:
         raise ValidationError('Formato incorrecto de ubicacion')
-    if ( latitude >= Decimal(-90) and latitude <= Decimal(90) ) & ( longitude >= Decimal(-180) and longitude <= Decimal(180) ):
-        pass
-    else:
-        raise ValidationError('Latitud o Longitud incorrecta')
+
+    if latitude.compare(Decimal(-90.0)) == Decimal(-1):
+        raise ValidationError('Latitud incorrecta')
+    elif latitude.compare(Decimal(90.0)) == Decimal(1):
+        raise ValidationError('Latitud incorrecta')
+    if longitude.compare(Decimal(-180.0)) == -1:
+        raise ValidationError('Longitud incorrecta')
+    elif longitude.compare(Decimal(180.0)) == 1:
+        raise ValidationError('Longitud incorrecta')

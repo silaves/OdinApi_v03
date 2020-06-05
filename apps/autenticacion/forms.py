@@ -12,6 +12,7 @@ from django.contrib.auth.models import Permission, Group
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import check_password
 from django.http import HttpResponse, Http404
+from django.contrib.admin.widgets import FilteredSelectMultiple
 
 from apps.autenticacion.models import Usuario
 
@@ -27,7 +28,7 @@ class CustomUserCreationForm(forms.ModelForm):
 
     class Meta:
         model = Usuario
-        fields = ('username',)
+        fields = ('username','password1','password2',)
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
@@ -179,3 +180,46 @@ class GroupForm(forms.ModelForm):
     class Meta:
         model = Group
         fields = '__all__'
+
+
+class UsuarioForm(CustomUserCreationForm):
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.order_by('name'),
+        required=False,
+        widget=FilteredSelectMultiple(
+            verbose_name=Group._meta.verbose_name,
+            is_stacked=False)
+    )
+    user_permissions = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.order_by('id'),
+        required=False,
+        widget=FilteredSelectMultiple(
+            verbose_name=Permission._meta.verbose_name,
+            is_stacked=False)
+    )
+
+    class Meta(CustomUserCreationForm):
+        model = Usuario
+        fields = ('username','email','password1','password2','nombres','apellidos','email','foto','ciudad','is_staff','is_active',
+            'groups','user_permissions',)
+
+
+class EditUsuarioForm(CustomUserChangeForm):
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.order_by('name'),
+        required=False,
+        widget=FilteredSelectMultiple(
+            verbose_name=Group._meta.verbose_name,
+            is_stacked=False)
+    )
+    user_permissions = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.order_by('id'),
+        required=False,
+        widget=FilteredSelectMultiple(
+            verbose_name=Permission._meta.verbose_name,
+            is_stacked=False)
+    )
+    class Meta(CustomUserChangeForm):
+        model = Usuario
+        fields = ('username','password','nombres','apellidos','email','foto','ciudad','is_staff','is_active',
+            'groups','user_permissions',)

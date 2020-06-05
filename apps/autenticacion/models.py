@@ -34,7 +34,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     nombres = models.CharField(_('nombres'), blank=True, max_length=40)
     apellidos = models.CharField(_('Apellidos'), blank=True, max_length=40)
     token_firebase = models.CharField(_('TokenFirebase'),max_length=255,blank=True,null=True)
-    foto = models.ImageField(upload_to='usuarios/', default = 'perfiles/no-img.jpg', blank=True, null=True)
+    foto = models.ImageField(upload_to='usuarios/', blank=True, null=True)
     ciudad = models.ForeignKey(Ciudad,blank=True,null=True, on_delete=models.PROTECT)
     groups = models.ManyToManyField(blank=True, related_name='user_set', related_query_name='user', to='auth.Group', 
         verbose_name='grupos1',db_table='USUARIO_GRUPO',
