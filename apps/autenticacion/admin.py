@@ -109,8 +109,8 @@ class CustomUserAdmin(UserAdmin):
     def get_form(self, request, obj=None, **kwargs):
         if not obj:
             self.form = self.add_form
-            print('ratamones')
-            self.form.base_fields['ciudad'].queryset = Ciudad.objects.filter(pk=request.user.ciudad.id)
+            if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD).exists():
+                self.form.base_fields['ciudad'].queryset = Ciudad.objects.filter(pk=request.user.ciudad.id)
             # kwargs['exclude'] = ['is_staff',]
             return self.form
         else:
@@ -152,7 +152,7 @@ class CustomUserAdmin(UserAdmin):
             q1 = qs.filter(groups__name=settings.GRUPO_EMPRESARIO, ciudad__id=request.user.ciudad.id)
             return (q0|q1).distinct()
 
-        return q0
+        return qs
     # def get_queryset(self, request):
     #     qs = super().get_queryset(request)
 
