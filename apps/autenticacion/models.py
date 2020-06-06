@@ -69,7 +69,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
         return self._generate_jwt_token()
 
     def get_full_name(self):
-        return '%s - %s %s' % (self.username,sel.nombres,self.appellidos)
+        return '%s - %s %s' % (self.username,self.nombres,self.appellidos)
     
     def grupos(self):
         return self.groups.filter().values('name')
