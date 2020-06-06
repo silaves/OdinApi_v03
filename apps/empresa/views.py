@@ -1053,8 +1053,9 @@ def get_pedido(request,id_pedido):
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def repartidores_by_ciudad(request, id_ciudad):
-    # los pedidos se haran por dia laboral
-    usuarios = Usuario.objects.filter(groups__name=settings.GRUPO_REPARTIDOR, ciudad__id=id_ciudad)
+    ini = datetime.now().time()
+    usuarios = Usuario.objects.filter(is_active=True, groups__name=settings.GRUPO_REPARTIDOR, ciudad__id=id_ciudad, perfil__disponibilidad='L',
+        horario__entrada__lte=ini,horario__salida__gte=ini,horario__estado=True)
     data = PerfilSerializer(usuarios, many=True).data
     return Response(data)
 

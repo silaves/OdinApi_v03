@@ -13,8 +13,8 @@ class CategoriaEmpresa(models.Model):
 
     class Meta:
         db_table = 'CATEGORIA_EMPRESA'
-        verbose_name = _('categoria_empresa')
-        verbose_name_plural = _('4. Categorias de una Empresa')
+        verbose_name = _('categoria empresa')
+        verbose_name_plural = _('4. Categorias Empresa')
     
     def __str__(self):
         return self.nombre

@@ -1,3 +1,4 @@
+from django.shortcuts import redirect
 from django.conf import settings
 from django.contrib import admin
 from django.db import models
@@ -28,7 +29,7 @@ class PerfilInline(admin.StackedInline):
             return ('telefono', 'calificacion','disponibilidad')
         else:
             if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD).exists():
-                return ('telefono',)    
+                return ('telefono','disponibilidad',)    
             return ('telefono', 'calificacion','disponibilidad')
 
 class HorarioForm(forms.ModelForm):
@@ -62,7 +63,7 @@ class CustomUserAdmin(UserAdmin):
     change_form = EditUsuarioForm
     model = Usuario
     list_display = ('username','id', 'nombres', 'apellidos', 'is_staff', 'is_active', 'get_groups', 'last_login')
-    list_filter = ('username', 'is_staff', 'is_active', 'groups')
+    list_filter = ('is_staff', 'is_active', 'groups')
     # fieldsets = (
     #     ('Informacion Personal', {'fields': ('username', 'password', 'nombres', 'apellidos','email','foto','ciudad')}),
     #     ('Permisos', {'fields': ('is_staff', 'is_active','groups', 'user_permissions')}),
@@ -77,7 +78,7 @@ class CustomUserAdmin(UserAdmin):
     inlines = (PerfilInline, HorarioInline,)
     search_fields = ('username',)
     # ordering = ('username',)
-    actions = ["activar_usuario"]
+    actions = ['activar_usuario','dar_baja_usuario']
 
     class Media:
         js = ['own/js/admin.js']
@@ -90,6 +91,9 @@ class CustomUserAdmin(UserAdmin):
 
     def activar_usuario(self, request, queryset):#acciones masivas
         queryset.update(is_active=True)
+    
+    def dar_baja_usuario(self, request, queryset):#acciones masivas
+        queryset.update(is_active=False)
 
     def get_groups(self, obj):
         print(obj)
@@ -107,15 +111,33 @@ class CustomUserAdmin(UserAdmin):
             return str_groups[:len(str_groups)-2]
 
     def get_form(self, request, obj=None, **kwargs):
+        grupos_disponibles_encargado = [settings.GRUPO_EMPRESARIO,settings.GRUPO_REPARTIDOR]
         if not obj:
             self.form = self.add_form
             if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD).exists():
                 self.form.base_fields['ciudad'].queryset = Ciudad.objects.filter(pk=request.user.ciudad.id)
-            # kwargs['exclude'] = ['is_staff',]
+                self.form.base_fields['ciudad'].empty_label = None
+                self.form.base_fields['groups'].queryset = Group.objects.filter(name__in=grupos_disponibles_encargado)
+                self.form.base_fields['groups'].required = True
             return self.form
         else:
             self.form = self.change_form
+            if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD).exists():
+                self.form.base_fields['ciudad'].queryset = Ciudad.objects.filter(pk=request.user.ciudad.id)
+                self.form.base_fields['ciudad'].empty_label = None
+                if request.user.id == obj.id:
+                    self.form.base_fields['groups'].queryset = Group.objects.filter(name=settings.GRUPO_ENCARGADO_CIUDAD)
+                else:
+                    self.form.base_fields['groups'].queryset = Group.objects.filter(name__in=grupos_disponibles_encargado)
+                self.form.base_fields['groups'].required = True
+            else:
+                self.form.base_fields['ciudad'].queryset = Ciudad.objects.filter(estado=True)
+                self.form.base_fields['groups'].queryset = Group.objects.all()
             return self.form
+
+    
+    # def get_changeform_initial_data(self, request):
+    #     return {'ciudad': Ciudad.objects.filter(pk=request.user.ciudad.id)}
 
     def get_fieldsets(self,request,obj=None):
         if obj:
@@ -146,25 +168,30 @@ class CustomUserAdmin(UserAdmin):
 
         if request.user.is_superuser:
             return qs
-        
+        show_usarios_for_encargado = [settings.GRUPO_EMPRESARIO,settings.GRUPO_REPARTIDOR]
         q0 = qs.filter(pk=request.user.id)
         if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD):
-            q1 = qs.filter(groups__name=settings.GRUPO_EMPRESARIO, ciudad__id=request.user.ciudad.id)
+            q1 = qs.filter(groups__name__in=show_usarios_for_encargado, ciudad__id=request.user.ciudad.id)
             return (q0|q1).distinct()
 
         return qs
-    # def get_queryset(self, request):
-    #     qs = super().get_queryset(request)
 
-    #     if request.user.is_superuser:
-    #         return qs
-        
-    #     q0 = qs.filter(pk=request.user.id)
-    #     if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD):
-    #         q1 = qs.filter(groups__name=settings.GRUPO_EMPRESARIO, ciudad__id=request.user.ciudad.id)
-    #         return (q0|q1).distinct()
+    # def get_readonly_fields(self, request, obj=None):
+    #     if obj:
+    #         return self.readonly_fields + ('is_staff',)
+    #     return self.readonly_fields
+    def response_add(self, request, obj, post_url_continue=None):
+        return redirect('/admin/autenticacion/usuario')
+    
+    def save_model(self, request, obj, form, change):
+        if obj:
+            if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD):
+                if request.user.id == obj.id:
+                    obj.is_staff = True
+        super(CustomUserAdmin, self).save_model(request, obj, form, change)
 
-    #     return q0
+
+
 
 
 

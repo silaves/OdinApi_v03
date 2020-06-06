@@ -55,7 +55,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = _('1. Usuarios')
     
     def __str__(self):
-        return self.username
+        return '%s - %s %s' % (self.username,self.nombres,self.apellidos)
     
     @property
     def token(self):
@@ -69,7 +69,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
         return self._generate_jwt_token()
 
     def get_full_name(self):
-        return self.username
+        return '%s - %s %s' % (self.username,sel.nombres,self.appellidos)
     
     def grupos(self):
         return self.groups.filter().values('name')
