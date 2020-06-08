@@ -229,7 +229,7 @@ def get_articulos_cursor_pagination(request, estado):
 
 
 # listar articulos - pagination number
-@swagger_auto_schema(method="GET",responses={200:ResponseBasicProducto(many=True)},operation_id="Lista de Todos lo articulos - Paginador Cursor")
+@swagger_auto_schema(method="GET",responses={200:ResponseBasicProducto(many=True)},operation_id="Lista de Todos lo articulos - Paginador Number")
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_articulos_number_pagination(request, estado):
