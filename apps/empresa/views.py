@@ -97,7 +97,7 @@ def editar_empresa(request, id_empresa):
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def get_empresas(request):
-    empresas = Empresa.objects.all()
+    empresas = Empresa.objects.filter(categoria__name=settings.COMIDA)
     data = EmpresaSerializer(empresas, many=True).data
     return Response(data)
 
@@ -180,12 +180,13 @@ def getSucursales(request, id_empresa, estado):
 def getAll_Sucursales(request, estado, id_ciudad):
     ciudad = revisar_ciudad(id_ciudad)
     revisar_estado_producto(estado)
+
     if estado == 'A':
-        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(ciudad__id=id_ciudad, estado=True)
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad, estado=True)
     elif estado == 'I':
-        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(ciudad__id=id_ciudad,estado=False)
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad,estado=False)
     else:
-        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(ciudad__id=id_ciudad)
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad)
     
     data = ShowSucursal_Serializer(sucursales, many=True).data
     return Response(data)

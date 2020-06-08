@@ -51,7 +51,7 @@ class Sucursal(models.Model):
     )
     empresa = models.ForeignKey(Empresa, on_delete=models.PROTECT)
     ciudad = models.ForeignKey(Ciudad,blank=True,null=True, on_delete=models.PROTECT)
-    encargado = models.ForeignKey(Usuario,blank=True,null=True, on_delete=models.PROTECT)
+    # encargado = models.ForeignKey(Usuario,blank=True,null=True, on_delete=models.PROTECT)
 
     class Meta:
         db_table = 'SUCURSAL'

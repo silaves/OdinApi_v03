@@ -71,13 +71,25 @@ class EmpresaAdmin(admin.ModelAdmin):
             return qs
         q0 = qs.filter(pk=request.user.id)
         if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD):
-            q1 = qs.filter(empresario__ciudad__id=request.user.ciudad.id)
+            try:
+                _ciudad = request.user.ciudad.id
+            except:
+                _ciudad = 0
+            q1 = qs.filter(empresario__ciudad__id=_ciudad)
             return (q0|q1).distinct()
         return qs
     
     def get_form(self, request, obj=None, **kwargs):
         form = super(EmpresaAdmin, self).get_form(request, obj, **kwargs)
-        form.base_fields['empresario'].queryset = Usuario.objects.filter(is_active=True,ciudad__id=request.user.ciudad.id,groups__name=settings.GRUPO_EMPRESARIO)
+        if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD).exists():
+            try:
+                _ciudad = request.user.ciudad.id
+            except:
+                _ciudad = 0
+            form.base_fields['empresario'].queryset = Usuario.objects.filter(is_active=True,ciudad__id=_ciudad,groups__name=settings.GRUPO_EMPRESARIO)
+        else:
+            form = super(EmpresaAdmin, self).get_form(request, obj, **kwargs)
+            form.base_fields['empresario'].queryset = Usuario.objects.filter(is_active=True,groups__name=settings.GRUPO_EMPRESARIO)
         return form
 
 # admin.site.register(Empresa)

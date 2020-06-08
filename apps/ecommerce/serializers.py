@@ -1,9 +1,11 @@
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from django.utils.timezone import make_naive
 
 from rest_framework import serializers
 
-from apps.empresa.models import Producto, CategoriaProducto
+from apps.empresa.models import Producto, CategoriaProducto, FotoProducto
+from apps.empresa.serializers import ShowSucursal_Serializer
 
 # class atributo(serializer.Serializer):
 
@@ -75,14 +77,76 @@ class CrearArticulo_Serializer(serializers.ModelSerializer):
 
 
 class EditarArticulo_Serializer(serializers.ModelSerializer):
+    fotos = serializers.ListField(child=serializers.ImageField())
 
     class Meta:
         model = Producto
-        fields = ['nombre','descripcion','precio','atributos']
+        fields = ['nombre','descripcion','precio','atributos','categoria']
+
+
+
+class ShowBasicArticulo_Serializer(serializers.Serializer):
+    def to_representation(self, instance):
+        return {
+            'id':instance.id,
+            'nombre':instance.nombre,
+            'precio':instance.precio,
+            'foto':instance.foto.url if instance.foto else None,
+            'creado':make_naive(instance.creado)
+        }
 
 
 
 
+# VER ARTICULO
+
+class ShowArticuloSucursal_Serializer(serializers.Serializer):
+
+    def to_representation(self, instance):
+        return {
+            'id':instance.id,
+            'nombre':instance.nombre,
+            'disponible':instance.disponible,
+            'estado':instance.estado,
+            'telefono':instance.telefono,
+            'ubicacion':instance.ubicacion,
+            'direccion':instance.direccion,
+            'foto':instance.foto.url if instance.foto else None,
+            'empresa':{
+                'id':instance.empresa.id, 
+                'nombre':instance.empresa.nombre,
+                'descripcion':instance.empresa.descripcion
+            },
+            'hora_inicio':instance.hora_inicio,
+            'hora_fin':instance.hora_fin,
+            'ciudad':{
+                'id':instance.ciudad.id,
+                'nombre':instance.ciudad.nombre
+            }
+        }
+
+class ShowBasicFotoProductoArticulo_Serializer(serializers.Serializer):
+    def to_representation(self, instance):
+        return {
+            'id':instance.id,
+            'foto':instance.foto.url if instance.foto else None
+        }
+
+class ShowAdvancedArticulo_Serializer(serializers.Serializer):
+    def to_representation(self, instance):
+        return {
+            'id':instance.id,
+            'nombre':instance.nombre,
+            'descripcion':instance.descripcion,
+            'precio':instance.precio,
+            'estado':instance.estado,
+            'foto':instance.foto.url if instance.foto else None,
+            'creado':make_naive(instance.creado),
+            'atributos':instance.atributos,
+            'sucursal':ShowArticuloSucursal_Serializer(instance.sucursal).data,
+            'categoria':ShowCategoriaProducto_Serializer(instance.categoria).data,
+            'fotos':ShowBasicFotoProductoArticulo_Serializer(FotoProducto.objects.filter(producto__id=instance.id), many=True).data,
+        }
 
 
 
@@ -113,3 +177,10 @@ class ResponseCategoriaProducto(serializers.ModelSerializer):
     class Meta:
         model = CategoriaProducto
         fields = ['id','nombre','codigo']
+
+
+class ResponseBasicProducto(serializers.ModelSerializer):
+
+    class Meta:
+        model = Producto
+        fields = ['id','nombre','precio','foto','creado']

@@ -12,4 +12,9 @@ urlpatterns = [
     # ARTICULO
 
     path('ecommerce/articulo/crear/', views.crear_articulo, name='Crear Articulo'),
+    path('ecommerce/articulo/<int:id_producto>/editar/', views.editar_articulo, name='Editar Articulo'),
+    path('ecommerce/articulo/<int:id_producto>/', views.ver_articulo, name='Ver articulo'),
+    path('ecommerce/articulo/<str:estado>/todos/', views.get_articulos, name='Listar todos los articulos'),
+    path('ecommerce/articulo/<str:estado>/todos/cursor/', views.get_articulos_cursor_pagination, name='Listar todos los articulos - Cursor'),
+    path('ecommerce/articulo/<str:estado>/todos/number/', views.get_articulos_number_pagination, name='Listar todos los articulos - Number'),
 ]

@@ -189,6 +189,9 @@ GRUPO_ADMINISTRADOR = 'administrador'
 GRUPO_REPARTIDOR = 'repartidor'
 GRUPO_TAXISTA = 'taxista'
 
+COMIDA = 'comida'
+ECOMMERCE = 'ecommerce'
+
 
 
 
