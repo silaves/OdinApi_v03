@@ -78,7 +78,6 @@ class CrearArticulo_Serializer(serializers.ModelSerializer):
 
 
 class EditarArticulo_Serializer(serializers.ModelSerializer):
-    fotos = serializers.ListField(child=serializers.ImageField())
 
     class Meta:
         model = Producto
