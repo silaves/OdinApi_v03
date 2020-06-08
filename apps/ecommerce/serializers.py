@@ -4,7 +4,8 @@ from django.utils.timezone import make_naive
 
 from rest_framework import serializers
 
-from apps.empresa.models import Producto, CategoriaProducto, FotoProducto
+from apps.autenticacion.models import Ciudad
+from apps.empresa.models import Producto, CategoriaProducto, FotoProducto, Empresa, Sucursal
 from apps.empresa.serializers import ShowSucursal_Serializer
 
 # class atributo(serializer.Serializer):
@@ -115,7 +116,8 @@ class ShowArticuloSucursal_Serializer(serializers.Serializer):
             'empresa':{
                 'id':instance.empresa.id, 
                 'nombre':instance.empresa.nombre,
-                'descripcion':instance.empresa.descripcion
+                'descripcion':instance.empresa.descripcion,
+                'empresario':instance.empresa.empresario.id,
             },
             'hora_inicio':instance.hora_inicio,
             'hora_fin':instance.hora_fin,
@@ -184,3 +186,41 @@ class ResponseBasicProducto(serializers.ModelSerializer):
     class Meta:
         model = Producto
         fields = ['id','nombre','precio','foto','creado']
+
+
+
+# response ver producto
+
+class ResponseCiudad_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ciudad
+        fields = ['id','nombre','estado']
+
+class ResponseArtEmpresaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Empresa
+        fields = ['id','nombre','descripcion','empresario']
+
+class ResponseSucursalSerializer(serializers.ModelSerializer):
+    empresa = ResponseArtEmpresaSerializer()
+    ciudad = ResponseCiudad_Serializer()
+
+    class Meta:
+        model = Sucursal
+        fields = ['id','nombre','disponible','estado','telefono','ubicacion','direccion','foto','empresa','hora_inicio','hora_fin','ciudad']
+
+class ResponseFotoProducto(serializers.ModelSerializer):
+    class Meta:
+        model = FotoProducto
+        fields = ['id','foto']
+
+
+class ResponseBasicProducto(serializers.ModelSerializer):
+    categoria = ResponseCategoriaProducto()
+    sucursal = ResponseSucursalSerializer()
+    fotos = ResponseFotoProducto(many=True)
+
+    class Meta:
+        model = Producto
+        fields = ['id','descripcion','nombre','precio','foto','creado','atributos','sucursal','categoria','fotos']
