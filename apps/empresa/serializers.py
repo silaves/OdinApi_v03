@@ -112,7 +112,7 @@ class ShowSucursal_Serializer(serializers.Serializer):
                 'id':instance.ciudad.id,
                 'nombre':instance.ciudad.nombre,
                 'estado':instance.ciudad.estado,
-                'comision_porcentaje':str(instance.comision_porcentaje)
+                'comision_porcentaje':str(instance.ciudad.comision_porcentaje)
             }
         }
 
