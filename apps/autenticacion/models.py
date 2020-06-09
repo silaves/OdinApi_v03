@@ -9,11 +9,13 @@ from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.core.exceptions import NON_FIELD_ERRORS
 
+from .validators import validar_porcentaje
 from apps.autenticacion.managers import CustomUserManager
 
 class Ciudad(models.Model):
     nombre = models.CharField(max_length=40, unique=True)
     costo_min = models.DecimalField(_('Costo minimo'),max_digits=7, decimal_places=1, blank=False,help_text='Costo minimo de un envio en Bs.')
+    comision_porcentaje = models.DecimalField(_('Comision'),default=0,max_digits=4, decimal_places=1, blank=False,help_text="el valor es un porcentaje", validators=[validar_porcentaje])
     estado = models.BooleanField(default=True)
 
     class Meta:
