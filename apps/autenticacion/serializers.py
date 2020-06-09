@@ -189,7 +189,7 @@ class UsuarioEditResponse(serializers.ModelSerializer):
 class VerCiudad_Serializer(serializers.ModelSerializer):
     class Meta:
         model = Ciudad
-        fields = ['id','nombre','estado']
+        fields = ['id','nombre','estado','comision_porcentaje']
 
 class VerHorario_Serializer(serializers.ModelSerializer):
     class Meta:

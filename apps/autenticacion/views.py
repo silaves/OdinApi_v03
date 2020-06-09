@@ -279,7 +279,6 @@ def getPerfil(request):
     except Exception as e:
         print(e)
         return Response({'error':'No se pudo cargar los datos'})
-    print(Usuario.grupos(usuario),'---------------------++++++++++++++')
     data = PerfilSerializer(usuario).data
     return Response(data)
 
