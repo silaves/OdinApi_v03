@@ -515,8 +515,8 @@ def editar_horario(request, id_horario):
 
 
 # ver horario repartidor
-@swagger_auto_schema(method="POST",responses={200:VerHorario_Serializer}, operation_id="Editar Horario Repartidor")
-@api_view(['POST'])
+@swagger_auto_schema(method="GET",responses={200:VerHorario_Serializer}, operation_id="Editar Horario Repartidor")
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def ver_horario(request, id_horario):
     try:
@@ -528,8 +528,8 @@ def ver_horario(request, id_horario):
 
 
 # listar horarios repartidor
-@swagger_auto_schema(method="POST",responses={200:VerHorario_Serializer(many=True)}, operation_id="Lista Horarios Repartidor")
-@api_view(['POST'])
+@swagger_auto_schema(method="GET",responses={200:VerHorario_Serializer(many=True)}, operation_id="Lista Horarios Repartidor")
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def lista_horarios(request):
     usuario = get_user_by_token(request)
