@@ -54,7 +54,7 @@ class HorarioInline(admin.StackedInline):
     model = Horario
     form = HorarioForm
     fields = ('entrada', 'salida','estado' )
-    can_delete = False
+    can_delete = True
     extra = 0
 
 

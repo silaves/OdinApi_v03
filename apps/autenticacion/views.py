@@ -23,10 +23,11 @@ from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import MissingBackend, AuthTokenError, AuthForbidden
 from django.contrib.auth.models import Group
 from .serializers import (RegistrarseSerializer, LoginSerializer, UsuarioSerializer, PerfilSerializer, 
-    UsuarioNormalSerializer,PerfilNormalSerializer, ChangePasswordSerializer, UsuarioEditResponse,CrearEmpresario_Serializer,EditHorario_Serializer)
+    UsuarioNormalSerializer,PerfilNormalSerializer, ChangePasswordSerializer, UsuarioEditResponse,CrearEmpresario_Serializer,EditHorario_Serializer,
+    VerHorario_Serializer)
 from . import serializers
 from .renderers import UserJSONRenderer
-from .models import Usuario, Perfil, VersionesAndroidApp, EncargadoCiudad, Ciudad
+from .models import Usuario, Perfil, VersionesAndroidApp, EncargadoCiudad, Ciudad, Horario
 
 
 
@@ -475,15 +476,66 @@ def get_responsable_ciudad(request, id_ciudad):
     return Response(data)    
 
 
-# cambiar horarios repartidor
-# @swagger_auto_schema(method="POST",responses={200:'Se agregaron los horarios correctamente'}, operation_id="Cambiar horario repartidor")
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def crear_horario(request):
-#     obj = EditHorario_Serializer(data=request.data, many=True)
-#     obj.is_valid(raise_exception=True)
-#     print(obj)
-#     return Response({'mensaje':'Se modifico los horarios correctamente'})
+# crear horario repartidor
+@swagger_auto_schema(method="POST",responses={200:'Se creo el horario correctamente'}, operation_id="Crear Horario Repartidor")
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def crear_horario(request):
+    usuario = get_user_by_token(request)
+    obj = CrearHorario_Serializer(data=request.data)
+    obj.is_valid(raise_exception=True)
+
+    if Horario.objects.filter(usuario__id=usuario.id).count() >= settings.MAXIMO_HORARIOS:
+        raise PermissionDenied('No puede crear mas de %s horarios' % settings.MAXIMO_HORARIOS)
+    horario = Horario()
+    horario.entrada = obj.validated_data['entrada']
+    horario.salida = obj.validated_data['salida']
+    horario.usuario = usuario
+    horario.save()
+    return Response({'mensaje':'Se creo el horario correctamente'})
+
+
+# modificar horario repartidor
+@swagger_auto_schema(method="POST",responses={200:'Se ha modificado el horario correctamente'}, operation_id="Editar Horario Repartidor")
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def editar_horario(request, id_horario):
+    usuario = get_user_by_token(request)
+    try:
+        horario = Horario.objects.get(pk=id_horario)
+    except:
+        raise NotFound('No se encontro el horario')
+    if horario.usuario.id != usuario.id:
+        raise PermissionDenied('Usted no es el propietario')
+    obj = EditHorario_Serializer(horario,data=request.data, partial=True)
+    obj.is_valid(raise_exception=True)
+    obj.save()
+    return Response({'mensaje':'Se ha modificado el horario correctamente'})
+
+
+
+# ver horario repartidor
+@swagger_auto_schema(method="POST",responses={200:VerHorario_Serializer}, operation_id="Editar Horario Repartidor")
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def ver_horario(request, id_horario):
+    try:
+        horario = Horario.objects.get(pk=id_horario)
+    except:
+        raise NotFound('No se encontro el horario')
+    obj = VerHorario_Serializer(horario).data
+    return Response(obj)
+
+
+# listar horarios repartidor
+@swagger_auto_schema(method="POST",responses={200:VerHorario_Serializer(many=True)}, operation_id="Lista Horarios Repartidor")
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def lista_horarios(request):
+    usuario = get_user_by_token(request)
+    horarios = Horario.objects.filter(usuario__id=usuario.id)
+    obj = VerHorario_Serializer(horarios, many=True).data
+    return Response(obj)
 
 
 @api_view(['GET'])

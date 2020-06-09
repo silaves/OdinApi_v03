@@ -27,5 +27,8 @@ urlpatterns = [
     path('android/<str:app>/', views.get_last_version),
     path('atencion/ciudad/<int:id_ciudad>/', views.get_responsable_ciudad),
 
-    # path('usuario/horario/crear/', views.editar_horarios),
+    path('usuario/horario/crear/', views.crear_horario),
+    path('usuario/horario/<int:id_horario>/editar/', views.editar_horario),
+    path('usuario/horario/<int:id_horario>/ver/', views.ver_horario),
+    path('usuario/horario/lista/', views.lista_horarios),
 ]

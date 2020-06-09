@@ -192,6 +192,7 @@ GRUPO_TAXISTA = 'taxista'
 COMIDA = 'comida'
 ECOMMERCE = 'ecommerce'
 
+MAXIMO_HORARIOS = 2
 
 
 

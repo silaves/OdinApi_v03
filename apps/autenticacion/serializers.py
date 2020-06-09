@@ -235,11 +235,22 @@ class PerfilSerializer(serializers.ModelSerializer):
     
 
 
-class EditHorario_Serializer(serializers.ModelSerializer):
-
+class CrearHorario_Serializer(serializers.ModelSerializer):
     class Meta:
         model = Horario
-        fields = ['id','entrada','salida','estado']
+        fields = ['entrada','salida']
+
+
+class EditHorario_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Horario
+        fields = ['entrada','salida','estado']
+
+class VerHorario_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Horario
+        fields = ['entrada','salida','estado','usuario']
+    
 
 # perfil edtiar
 
