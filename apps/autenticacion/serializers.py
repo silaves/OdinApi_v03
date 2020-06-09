@@ -235,7 +235,11 @@ class PerfilSerializer(serializers.ModelSerializer):
     
 
 
-      
+class EditHorario_Serializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Horario
+        fields = ['id','entrada','salida','estado']
 
 # perfil edtiar
 
@@ -256,6 +260,9 @@ class EditarPerfilSerializer(serializers.ModelSerializer):
     # def update(self, instance, validata_data):
     #     print('update mi update')
     #     return 1
+
+
+
 
 class SocialSerializer(serializers.Serializer):
     """Serializer which accepts an OAuth2 access token and provider."""

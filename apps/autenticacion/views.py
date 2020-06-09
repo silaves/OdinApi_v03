@@ -23,7 +23,7 @@ from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import MissingBackend, AuthTokenError, AuthForbidden
 from django.contrib.auth.models import Group
 from .serializers import (RegistrarseSerializer, LoginSerializer, UsuarioSerializer, PerfilSerializer, 
-    UsuarioNormalSerializer,PerfilNormalSerializer, ChangePasswordSerializer, UsuarioEditResponse,CrearEmpresario_Serializer)
+    UsuarioNormalSerializer,PerfilNormalSerializer, ChangePasswordSerializer, UsuarioEditResponse,CrearEmpresario_Serializer,EditHorario_Serializer)
 from . import serializers
 from .renderers import UserJSONRenderer
 from .models import Usuario, Perfil, VersionesAndroidApp, EncargadoCiudad, Ciudad
@@ -474,6 +474,16 @@ def get_responsable_ciudad(request, id_ciudad):
     data = PerfilSerializer(res.usuario).data
     return Response(data)    
 
+
+# cambiar horarios repartidor
+# @swagger_auto_schema(method="POST",responses={200:'Se agregaron los horarios correctamente'}, operation_id="Cambiar horario repartidor")
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def crear_horario(request):
+#     obj = EditHorario_Serializer(data=request.data, many=True)
+#     obj.is_valid(raise_exception=True)
+#     print(obj)
+#     return Response({'mensaje':'Se modifico los horarios correctamente'})
 
 
 @api_view(['GET'])

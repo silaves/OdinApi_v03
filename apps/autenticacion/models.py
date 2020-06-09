@@ -95,7 +95,8 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 class Perfil(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
     telefono = models.IntegerField(blank=True,null=True)
-    calificacion = models.IntegerField(default=0)
+    cant_calificacion = models.PositiveIntegerField(default=0)
+    calificacion = models.DecimalField(_('Calificacion'),default=0,max_digits=3, decimal_places=1)
     disponibilidad = models.CharField(max_length=1, default='N',choices=(
 		('L','Libre'),('O', 'Ocupado'),('N', 'No Disponible')
 	))

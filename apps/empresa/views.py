@@ -1473,11 +1473,134 @@ def calcular_tarifa_repartidor(origin, destination, id_ciudad):
 
 
 
+# CALIFICACION
+@swagger_auto_schema(method="POST",request_body=CalificarCliente_Serializer,responses={200:'Se ha calificado'},operation_id="Calificar Pedido Cliente")
+@api_view(['POST'])
+@permission_classes((IsAuthenticated,))
+def calificar_para_cliente(request, id_pedido):
+    user = get_user_by_token(request)
+    try:
+        pedido = Pedido.objects.get(pk=id_pedido)
+    except:
+        raise NotFound('No se encontro el pedido')
+    if pedido.estado != 'F':
+        raise PermissionDenied('El pedido no esta finalizado')
+    if pedido.cliente.id == user.id:
+        if pedido.is_calificado_cliente is False:
+            obj = CalificarCliente_Serializer(data=request.data)
+            obj.is_valid(raise_exception=True)
+            value_repartidor = obj.validated_data['value_repartidor']
+            value_empresario = obj.validated_data['value_empresario']
+            try:
+                if value_repartidor > 0:
+                    old_cal = pedido.repartidor.perfil.cant_calificacion
+                    old_val = pedido.repartidor.perfil.calificacion
+                    pedido.repartidor.perfil.cant_calificacion = old_cal + 1
+                    pedido.repartidor.perfil.calificacion = Decimal( ((old_cal*old_val) + value_repartidor) / (old_cal+1) )
+                    pedido.repartidor.perfil.save()
+                if value_empresario > 0:
+                    old_cal = pedido.sucursal.cant_calificacion
+                    old_val = pedido.sucursal.calificacion
+                    pedido.sucursal.cant_calificacion = old_cal + 1
+                    pedido.sucursal.calificacion = Decimal( ((old_cal*old_val) + value_empresario) / (old_cal+1) )
+                    pedido.sucursal.save()
+                pedido.is_calificado_cliente = True
+                pedido.save()
+            except:
+                raise PermissionDenied('Ha ocurrido un error')
+        else:
+            raise PermissionDenied('Usted ya califico el pedido')
+    else:
+        raise PermissionDenied('Usted no esta autorizado')
+    return Response({'mensaje':'OK'})
 
 
 
+@swagger_auto_schema(method="POST",request_body=CalificarRepartidor_Serializer,responses={200:'Se ha calificado'},operation_id="Calificar Pedido Repartidor")
+@api_view(['POST'])
+@permission_classes((IsAuthenticated,))
+def calificar_para_repartidor(request, id_pedido):
+    user = get_user_by_token(request)
+    try:
+        pedido = Pedido.objects.get(pk=id_pedido)
+    except:
+        raise NotFound('No se encontro el pedido')
+    if pedido.estado != 'F':
+        raise PermissionDenied('El pedido no esta finalizado')
+    if pedido.repartidor.id == user.id:
+        if pedido.is_calificado_repartidor is False:
+            obj = CalificarRepartidor_Serializer(data=request.data)
+            obj.is_valid(raise_exception=True)
+            value_cliente = obj.validated_data['value_cliente']
+            value_empresario = obj.validated_data['value_empresario']
+            try:
+                if value_cliente > 0:
+                    perfil = pedido.cliente.perfil
+                    old_cal = perfil.cant_calificacion
+                    old_val = perfil.calificacion
+                    perfil.cant_calificacion = old_cal + 1
+                    perfil.calificacion = Decimal( ((old_cal*old_val) + value_cliente) / (old_cal+1) )
+                    perfil.save()
+                if value_empresario > 0:
+                    sucursal = pedido.sucursal
+                    old_cal = sucursal.cant_calificacion
+                    old_val = sucursal.calificacion
+                    sucursal.cant_calificacion = old_cal + 1
+                    sucursal.calificacion = Decimal( ((old_cal*old_val) + value_empresario) / (old_cal+1) )
+                    sucursal.save()
+                pedido.is_calificado_repartidor = True
+                pedido.save()
+            except:
+                raise PermissionDenied('Ha ocurrido un error')
+        else:
+            raise PermissionDenied('Usted ya califico el pedido')
+    else:
+        raise PermissionDenied('Usted no esta autorizado')
+    return Response({'mensaje':'OK'})
 
 
+
+@swagger_auto_schema(method="POST",request_body=CalificarEmpresario_Serializer,responses={200:'Se ha calificado'},operation_id="Calificar Pedido Empresa")
+@api_view(['POST'])
+@permission_classes((IsAuthenticated,))
+def calificar_para_empresa(request, id_pedido):
+    user = get_user_by_token(request)
+    try:
+        pedido = Pedido.objects.get(pk=id_pedido)
+    except:
+        raise NotFound('No se encontro el pedido')
+    if pedido.estado != 'F':
+        raise PermissionDenied('El pedido no esta finalizado')
+    if pedido.sucursal.empresa.empresario.id == user.id:
+        if pedido.is_calificado_empresario is False:
+            obj = CalificarEmpresario_Serializer(data=request.data)
+            obj.is_valid(raise_exception=True)
+            value_cliente = obj.validated_data['value_cliente']
+            value_repartidor = obj.validated_data['value_repartidor']
+            try:
+                if value_cliente > 0:
+                    perfil = pedido.cliente.perfil
+                    old_cal = perfil.cant_calificacion
+                    old_val = perfil.calificacion
+                    perfil.cant_calificacion = old_cal + 1
+                    perfil.calificacion = Decimal( ((old_cal*old_val) + value_cliente) / (old_cal+1) )
+                    perfil.save()
+                if value_repartidor > 0:
+                    perfil = pedido.repartidor.perfil
+                    old_cal = perfil.cant_calificacion
+                    old_val = perfil.calificacion
+                    perfil.cant_calificacion = old_cal + 1
+                    perfil.calificacion = Decimal( ((old_cal*old_val) + value_repartidor) / (old_cal+1) )
+                    perfil.save()
+                pedido.is_calificado_empresario = True
+                pedido.save()
+            except:
+                raise PermissionDenied('Ha ocurrido un error')
+        else:
+            raise PermissionDenied('Usted ya califico el pedido')
+    else:
+        raise PermissionDenied('Usted no esta autorizado')
+    return Response({'mensaje':'OK'})
 
 
 # FUNCIONES AUXILIARES

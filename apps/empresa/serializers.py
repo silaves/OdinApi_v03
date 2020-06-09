@@ -875,3 +875,17 @@ class ProductoFinal_Paginator_Serializer(serializers.Serializer):
 
 
 
+
+# CALIFICAR
+
+class CalificarCliente_Serializer(serializers.Serializer):
+    value_repartidor = serializers.IntegerField(max_value=5,min_value=0, required=True)
+    value_empresario = serializers.IntegerField(max_value=5,min_value=0, required=True)
+
+class CalificarRepartidor_Serializer(serializers.Serializer):
+    value_cliente = serializers.IntegerField(max_value=5,min_value=0, required=True)
+    value_empresario = serializers.IntegerField(max_value=5,min_value=0, required=True)
+
+class CalificarEmpresario_Serializer(serializers.Serializer):
+    value_cliente = serializers.IntegerField(max_value=5,min_value=0, required=True)
+    value_repartidor = serializers.IntegerField(max_value=5,min_value=0, required=True)

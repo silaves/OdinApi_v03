@@ -159,7 +159,7 @@ def editar_articulo(request, id_producto):
     obj.is_valid(raise_exception=True)
     
     articulo = obj.save()
-
+    
     # fotos = obj.validated_data.pop('fotos')
 
     # FotoProducto.objects.filter(producto__id=id_producto).delete()

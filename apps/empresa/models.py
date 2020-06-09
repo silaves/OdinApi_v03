@@ -52,6 +52,8 @@ class Sucursal(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.PROTECT)
     ciudad = models.ForeignKey(Ciudad,blank=True,null=True, on_delete=models.PROTECT)
     # encargado = models.ForeignKey(Usuario,blank=True,null=True, on_delete=models.PROTECT)
+    cant_calificacion = models.PositiveIntegerField(default=0)
+    calificacion = models.DecimalField(_('Calificacion'),default=0,max_digits=3, decimal_places=1)
 
     class Meta:
         db_table = 'SUCURSAL'
@@ -197,6 +199,9 @@ class Pedido(models.Model):
     ubicacion = models.CharField(_('Ubicacion'), max_length=255, blank=False)
     sucursal = models.ForeignKey(Sucursal, on_delete=models.PROTECT)
     repartidor = models.ForeignKey(Usuario,blank=True,null=True,related_name='repartidor', on_delete=models.CASCADE)
+    is_calificado_cliente = models.BooleanField(default=False, blank=False)
+    is_calificado_empresario = models.BooleanField(default=False, blank=False)
+    is_calificado_repartidor = models.BooleanField(default=False, blank=False)
 
     class Meta:
         db_table = 'PEDIDO'
