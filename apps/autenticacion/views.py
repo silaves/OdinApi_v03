@@ -24,7 +24,7 @@ from social_core.exceptions import MissingBackend, AuthTokenError, AuthForbidden
 from django.contrib.auth.models import Group
 from .serializers import (RegistrarseSerializer, LoginSerializer, UsuarioSerializer, PerfilSerializer, 
     UsuarioNormalSerializer,PerfilNormalSerializer, ChangePasswordSerializer, UsuarioEditResponse,CrearEmpresario_Serializer,EditHorario_Serializer,
-    VerHorario_Serializer)
+    VerHorario_Serializer,CrearHorario_Serializer)
 from . import serializers
 from .renderers import UserJSONRenderer
 from .models import Usuario, Perfil, VersionesAndroidApp, EncargadoCiudad, Ciudad, Horario
@@ -477,7 +477,7 @@ def get_responsable_ciudad(request, id_ciudad):
 
 
 # crear horario repartidor
-@swagger_auto_schema(method="POST",responses={200:'Se creo el horario correctamente'}, operation_id="Crear Horario Repartidor")
+@swagger_auto_schema(method="POST",request_body=CrearHorario_Serializer,responses={200:'Se creo el horario correctamente'}, operation_id="Crear Horario Repartidor")
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def crear_horario(request):
@@ -496,7 +496,7 @@ def crear_horario(request):
 
 
 # modificar horario repartidor
-@swagger_auto_schema(method="POST",responses={200:'Se ha modificado el horario correctamente'}, operation_id="Editar Horario Repartidor")
+@swagger_auto_schema(method="POST",request_body=EditHorario_Serializer,responses={200:'Se ha modificado el horario correctamente'}, operation_id="Editar Horario Repartidor")
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def editar_horario(request, id_horario):
