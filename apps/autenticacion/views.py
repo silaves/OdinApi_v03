@@ -515,7 +515,7 @@ def editar_horario(request, id_horario):
 
 
 # ver horario repartidor
-@swagger_auto_schema(method="GET",responses={200:VerHorario_Serializer}, operation_id="Editar Horario Repartidor")
+@swagger_auto_schema(method="GET",responses={200:VerHorario_Serializer}, operation_id="Ver Horario Repartidor")
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def ver_horario(request, id_horario):
