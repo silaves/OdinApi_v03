@@ -16,6 +16,7 @@ urlpatterns = [
     path('empresa/sucursal/crear/', views.crearSucursal, name='Crear Sucursal'),
     path('empresa/sucursal/<int:id_sucursal>/editar/', views.editar_sucursal, name='Modificar Sucursal'),
     path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/', views.getAll_Sucursales, name='Lista todas Sucursales'),
+    path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/todo/', views.get_sucurales_sistema, name='Lista todas Sucursales Sistema'),
     path('empresa/<int:id_empresa>/sucursal/<str:estado>/lista/', views.getSucursales, name='Lista de Sucursales por Empresa'),
     path('empresa/sucursal/<int:id_sucursal>/', views.getSucursal, name='Obtener Sucursal'),
     path('empresa/sucursal/<int:id_sucursal>/disponible/', views.cambiar_diponible_sucursal, name='Cambiar Disponibilidad Sucursal'),

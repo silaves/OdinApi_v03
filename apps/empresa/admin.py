@@ -1,3 +1,4 @@
+from decimal import Decimal, ROUND_UP
 from django.conf import settings
 from django.contrib import admin
 from django.utils.safestring import mark_safe
@@ -35,9 +36,39 @@ class ProductoAdmin(admin.ModelAdmin):
 
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):
-    list_display = ('id','cliente','sucursal','repartidor','total','fecha')
-    list_filter = ('sucursal', 'repartidor','fecha')
-    search_fields = ('total',)
+    list_display = ('id','cliente','sucursal','repartidor','precio_final','comision_odin','fecha')
+    list_filter = ('sucursal','fecha','estado')
+    search_fields = ('id',)
+    list_per_page = 20
+
+    def get_actions(self, request):#eliminar la accion de eliminar
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    def comision_odin(self, obj):
+        if obj.sucursal.ciudad.comision_porcentaje:
+            return ((obj.sucursal.ciudad.comision_porcentaje/Decimal(100))*obj.costo_envio).quantize(Decimal('0.1'),ROUND_UP)
+
+    def get_estado(self,obj):
+        if obj.estado == 'A':
+            color = 'background-color:#1976d2;'
+        elif obj.estado == 'E':
+            color = 'background-color:#6a1b9a;'
+        elif obj.estado == 'M':
+            color = 'background-color:#008b00;'
+        elif obj.estado == 'F':
+            color = 'background-color:#c62828;'
+        else:
+            color = 'background-color:#c62828;'
+        return format_html(
+            '''
+            <span style="font-size:13px;font-weight:bold;padding-left:6px;padding-right:6px;padding-top:1px;padding-bottom:1px;{}border-radius:100%;color:white;
+            box-shadow:1px 1px 1px #455a64;">{}</span>
+            ''', color,obj.estado
+        )
+    
 
 @admin.register(Empresa)
 class EmpresaAdmin(admin.ModelAdmin):

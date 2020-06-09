@@ -193,6 +193,26 @@ def getAll_Sucursales(request, estado, id_ciudad):
 
 
 
+# lista de todas las sucursales
+@swagger_auto_schema(method="GET",responses={200:SucursalSerializer(many=True)},operation_id="Lista de Todas las Sucursales del Sistema por ciudad",
+    operation_description="Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos las sucursales")
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def get_sucurales_sistema(request, estado, id_ciudad):
+    ciudad = revisar_ciudad(id_ciudad)
+    revisar_estado_producto(estado)
+
+    if estado == 'A':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(ciudad__id=id_ciudad, estado=True)
+    elif estado == 'I':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(ciudad__id=id_ciudad,estado=False)
+    else:
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(ciudad__id=id_ciudad)
+    
+    data = ShowSucursal_Serializer(sucursales, many=True).data
+    return Response(data)
+
+
 # obtener sucursal
 @swagger_auto_schema(method="GET",responses={200:SucursalSerializer},operation_id="Ver Sucursal")
 @api_view(['GET'])
