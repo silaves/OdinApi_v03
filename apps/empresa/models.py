@@ -194,7 +194,7 @@ class Pedido(models.Model):
     cliente = models.ForeignKey(Usuario, on_delete=models.PROTECT)
     fecha = models.DateTimeField(auto_now_add=True)
     estado = models.CharField(max_length=1, default='N',choices=(
-		('A','Activo'),('E', 'En Curso'),('F', 'Finalizado'),('C', 'Cancelado')
+		('A','Activo'),('E', 'En Curso'),('M', 'En Marcha'),('F', 'Finalizado'),('C', 'Cancelado')
 	))
     ubicacion = models.CharField(_('Ubicacion'), max_length=255, blank=False)
     sucursal = models.ForeignKey(Sucursal, on_delete=models.PROTECT)

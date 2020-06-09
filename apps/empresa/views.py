@@ -583,6 +583,8 @@ def cambiar_pedido_en_curso(request, id_pedido):
         raise NotFound('No se encontro el Pedido')
     if pedido.estado == 'F':
         raise PermissionDenied('El pedido ya esta finalizado')
+    if pedido.estado == 'M':
+        raise PermissionDenied('El pedido ya esta en marcha')
     if pedido.estado == 'C':
         raise PermissionDenied('El pedido ya esta cancelado')
     revisar_propietario_sucursal(usuario,pedido.sucursal)
@@ -592,10 +594,32 @@ def cambiar_pedido_en_curso(request, id_pedido):
     return Response({'mensaje':'El pedido ha sido puesto en curso'})
 
 
+# cambia el estado del pedido a en marcha
+@swagger_auto_schema(method="POST", responses={200:'El pedido ha sido puesto en marcha'},operation_id="Establecer Pedido a en marcha",
+    operation_description="Cambia el estado del pedido a 'en marcha', siempre y cuando este en 'curso'")
+@api_view(['POST'])
+@permission_classes([IsAuthenticated,])
+def cambiar_pedido_en_marcha(request, id_pedido):
+    usuario = get_user_by_token(request)
+    try:
+        pedido = Pedido.objects.get(pk=id_pedido)
+    except:
+        raise NotFound('No se encontro el Pedido')
+    if pedido.estado != 'E':
+        raise PermissionDenied('El pedido no esta en curso')
+    if pedido.repartidor is None:
+        raise PermissionDenied('No se ha asignado un repartidor')
+    revisar_propietario_sucursal(usuario,pedido.sucursal)
+    pedido.estado = 'M'
+    pedido.save()
+
+    return Response({'mensaje':'El pedido ha sido puesto en marcha'})
+
+
 
 # cambia el estado del pedido a finalizado
 @swagger_auto_schema(method="POST", responses={200:'El pedido ha sido finalizado'},operation_id="Establecer Pedido a finalizado",
-    operation_description="Cambia el estado del pedido a 'finalizado', siempre y cuando este en 'curso'")
+    operation_description="Cambia el estado del pedido a 'finalizado', siempre y cuando este en 'marcha'")
 @api_view(['POST'])
 @permission_classes([IsAuthenticated,])
 def cambiar_pedido_en_finalizado(request, id_pedido):
@@ -608,6 +632,8 @@ def cambiar_pedido_en_finalizado(request, id_pedido):
         raise PermissionDenied('El pedido esta activo')
     if pedido.estado == 'C':
         raise PermissionDenied('El pedido ya esta cancelado')
+    if pedido.estado == 'E':
+        raise PermissionDenied('El pedido ya esta en curso')
     revisar_propietario_sucursal(usuario,pedido.sucursal)
     pedido.estado = 'F'
     pedido.save()
@@ -632,6 +658,8 @@ def cambiar_pedido_en_cancelado(request, id_pedido):
         raise PermissionDenied('no se puede cambiar el estado de un pedido finalizado')
     if pedido.estado == 'E':
         raise PermissionDenied('no se puede cancelar el estado de un pedido en curso')
+    if pedido.estado == 'M':
+        raise PermissionDenied('no se puede cancelar el estado de un pedido en marcha')
     pedido.estado = 'C'
     pedido.save()
 
@@ -641,7 +669,7 @@ def cambiar_pedido_en_cancelado(request, id_pedido):
 
 # cambia el estado del pedido a finalizado
 @swagger_auto_schema(method="POST", responses={200:'El pedido ha sido finalizado'},operation_id="Establecer Pedido a finalizado - cliente",
-    operation_description="Cambia el estado del pedido a 'finalizado', siempre y cuando este en 'curso'")
+    operation_description="Cambia el estado del pedido a 'finalizado', siempre y cuando este en 'marcha'")
 @api_view(['POST'])
 @permission_classes([IsAuthenticated,])
 def cambiar_pedido_en_finalizado_cliente(request, id_pedido):
@@ -650,8 +678,8 @@ def cambiar_pedido_en_finalizado_cliente(request, id_pedido):
         pedido = Pedido.objects.get(pk=id_pedido)
     except:
         raise NotFound('No se encontro el Pedido')
-    if pedido.estado != 'E':
-        raise PermissionDenied({'El pedido no esta en curso'})
+    if pedido.estado != 'M':
+        raise PermissionDenied({'El pedido no esta en marcha'})
     if pedido.cliente.id != usuario.id:
         raise PermissionDenied('Usted no realizo el pedido')
     pedido.estado = 'F'
@@ -1638,12 +1666,12 @@ def revisar_pedido(id_pedido):
         raise NotFound('No se encontro el pedido')
 
 def revisar_estado_pedido(estado):
-    if not(estado == 'A' or estado == 'E' or estado == 'F' or estado == 'C'):
+    if not(estado == 'A' or estado == 'E' or estado == 'F' or estado == 'C' or estado == 'M'):
         raise NotFound('No existe la ruta','empresa not found')
     return estado
 
 def revisar_estado_pedido_repartidor(estado):
-    if not(estado == 'E' or estado == 'F' or estado == 'C'):
+    if not(estado == 'E' or estado == 'F' or estado == 'C' or estado == 'M'):
         raise NotFound('No existe la ruta')
     return estado
 

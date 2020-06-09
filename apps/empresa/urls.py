@@ -48,6 +48,7 @@ urlpatterns = [
 
     path('empresa/sucursal/pedido/<int:id_pedido>/editar_f/', views.editar_pedido_f, name='Editar Pedido'),
     path('empresa/sucursal/pedido/<int:id_pedido>/curso/', views.cambiar_pedido_en_curso, name='Cambiar pedido a en curso'),
+    path('empresa/sucursal/pedido/<int:id_pedido>/marcha/', views.cambiar_pedido_en_marcha, name='Cambiar pedido a en marcha'),
     path('empresa/sucursal/pedido/<int:id_pedido>/finalizado/', views.cambiar_pedido_en_finalizado, name='Cambiar pedido a finalizado'),
     path('empresa/sucursal/pedido/<int:id_pedido>/cancelar/', views.cambiar_pedido_en_cancelado, name='Cambiar pedido a cancelado'),
     path('empresa/sucursal/pedido/<int:id_pedido>/cliente_finalizado/', views.cambiar_pedido_en_finalizado_cliente, name='Cambiar pedido a finalizado-cliente'),
