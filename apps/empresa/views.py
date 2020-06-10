@@ -948,12 +948,15 @@ def get_pedidos_by_estado_cliente(request, estado):
     usuario = get_user_by_token(request)
     if not is_member(usuario,'cliente'):
         return Response({'error':'No esta autorizado'})
-    estado = revisar_estado_pedido(estado)
 
     hora_actual = make_aware(datetime.now())
     hora_inicio = get_hora_apertura(hora_actual)
     hora_fin = hora_actual
-    pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,estado=estado,fecha__gte=hora_inicio,fecha__lte=hora_fin)
+    if estado == 'T':
+        pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,fecha__gte=hora_inicio,fecha__lte=hora_fin)
+    else:
+        estado = revisar_estado_pedido(estado)
+        pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,estado=estado,fecha__gte=hora_inicio,fecha__lte=hora_fin)
     data = ShowPedido_forCliente_Serializer(pedidos, many=True, context={'request':request}).data
     return Response(data)
 
@@ -966,13 +969,17 @@ def get_pedidos_by_estado_cliente_paginacion_cursor(request, estado):
     usuario = get_user_by_token(request)
     if not is_member(usuario, settings.GRUPO_CLIENTE):
         return Response({'error':'No esta autorizado'})
-    estado = revisar_estado_pedido(estado)
 
     hora_actual = make_aware(datetime.now())
     hora_inicio = get_hora_apertura(hora_actual)
     hora_fin = hora_actual
     paginator = CursorPagination()
-    pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,estado=estado,fecha__gte=hora_inicio,fecha__lte=hora_fin)
+
+    if estado == 'T':
+        pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,fecha__gte=hora_inicio,fecha__lte=hora_fin)
+    else:
+        estado = revisar_estado_pedido(estado)
+        pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,estado=estado,fecha__gte=hora_inicio,fecha__lte=hora_fin)
     page = paginator.paginate_queryset(pedidos, request)
     serializer = ShowPedido_forCliente_Serializer(page, many=True, context={'request':request}).data
     data = paginator.get_paginated_response(serializer)
@@ -993,12 +1000,16 @@ def get_pedidos_by_estado_cliente_semana(request, estado):
     usuario = get_user_by_token(request)
     if not is_member(usuario, settings.GRUPO_CLIENTE):
         return Response({'error':'No esta autorizado'})
-    estado = revisar_estado_pedido(estado)
 
     hora_actual = make_aware(datetime.now())
     hora_inicio = get_hora_apertura(hora_actual)
     hora_fin = hora_actual
-    pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,estado=estado,fecha__gte=hora_inicio-timedelta(days=7),fecha__lte=hora_fin)
+
+    if estado == 'T':
+        pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,fecha__gte=hora_inicio-timedelta(days=7),fecha__lte=hora_fin)
+    else:
+        estado = revisar_estado_pedido(estado)
+        pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,estado=estado,fecha__gte=hora_inicio-timedelta(days=7),fecha__lte=hora_fin)
     data = ShowPedido_forCliente_Serializer(pedidos, many=True, context={'request':request}).data
     return Response(data)
 
@@ -1011,13 +1022,17 @@ def get_pedidos_by_estado_cliente_semana_paginacion_cursor(request, estado):
     usuario = get_user_by_token(request)
     if not is_member(usuario, settings.GRUPO_CLIENTE):
         return Response({'error':'No esta autorizado'})
-    estado = revisar_estado_pedido(estado)
 
     hora_actual = make_aware(datetime.now())
     hora_inicio = get_hora_apertura(hora_actual)
     hora_fin = hora_actual
     paginator = CursorPagination()
-    pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,estado=estado,fecha__gte=hora_inicio-timedelta(days=7),fecha__lte=hora_fin)
+
+    if estado == 'T':
+        pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,fecha__gte=hora_inicio-timedelta(days=7),fecha__lte=hora_fin)
+    else:
+        estado = revisar_estado_pedido(estado)
+        pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,estado=estado,fecha__gte=hora_inicio-timedelta(days=7),fecha__lte=hora_fin)
     page = paginator.paginate_queryset(pedidos, request)
     serializer = ShowPedido_forCliente_Serializer(page, many=True, context={'request':request}).data
     data = paginator.get_paginated_response(serializer)
@@ -1040,13 +1055,17 @@ def get_pedidos_by_estado_cliente_rango(request, estado):
     usuario = get_user_by_token(request)
     if not is_member(usuario, settings.GRUPO_CLIENTE):
         raise PermissionDenied('No esta autorizado')
-    estado = revisar_estado_pedido(estado)
     fechas = PedidosRangoFecha_Sucursal(data=request.data)
     fechas.is_valid(raise_exception=True)
 
     min_date = make_aware(datetime.combine(fechas.validated_data['fecha_inicio'], time.min))
     max_date = make_aware(datetime.combine(fechas.validated_data['fecha_fin'], time.max))
-    pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,estado=estado,fecha__gte=min_date,fecha__lte=max_date)
+    
+    if estado == 'T':
+        pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,fecha__gte=min_date,fecha__lte=max_date)
+    else:
+        estado = revisar_estado_pedido(estado)
+        pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,estado=estado,fecha__gte=min_date,fecha__lte=max_date)
     data = ShowPedido_forCliente_Serializer(pedidos, many=True, context={'request':request}).data
     return Response(data)
 
@@ -1060,14 +1079,18 @@ def get_pedidos_by_estado_cliente_rango_paginacion_cursor(request, estado):
     usuario = get_user_by_token(request)
     if not is_member(usuario, settings.GRUPO_CLIENTE):
         raise PermissionDenied('No esta autorizado')
-    estado = revisar_estado_pedido(estado)
     fechas = PedidosRangoFecha_Sucursal(data=request.data)
     fechas.is_valid(raise_exception=True)
 
     min_date = make_aware(datetime.combine(fechas.validated_data['fecha_inicio'], time.min))
     max_date = make_aware(datetime.combine(fechas.validated_data['fecha_fin'], time.max))
     paginator = CursorPagination()
-    pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,estado=estado,fecha__gte=min_date,fecha__lte=max_date)
+    
+    if estado == 'T':
+        pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,fecha__gte=min_date,fecha__lte=max_date)
+    else:
+        estado = revisar_estado_pedido(estado)
+        pedidos = Pedido.objects.select_related('sucursal','cliente','repartidor').filter(cliente__id=usuario.id,estado=estado,fecha__gte=min_date,fecha__lte=max_date)
     page = paginator.paginate_queryset(pedidos, request)
     serializer = ShowPedido_forCliente_Serializer(page, many=True, context={'request':request}).data
     data = paginator.get_paginated_response(serializer)
