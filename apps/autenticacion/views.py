@@ -24,7 +24,7 @@ from social_core.exceptions import MissingBackend, AuthTokenError, AuthForbidden
 from django.contrib.auth.models import Group
 from .serializers import (RegistrarseSerializer, LoginSerializer, UsuarioSerializer, PerfilSerializer, 
     UsuarioNormalSerializer,PerfilNormalSerializer, ChangePasswordSerializer, UsuarioEditResponse,CrearEmpresario_Serializer,EditHorario_Serializer,
-    VerHorario_Serializer,CrearHorario_Serializer)
+    VerHorario_Serializer,CrearHorario_Serializer,VerHorarioNew_Serializer)
 from . import serializers
 from .renderers import UserJSONRenderer
 from .models import Usuario, Perfil, VersionesAndroidApp, EncargadoCiudad, Ciudad, Horario
