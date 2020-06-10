@@ -194,7 +194,7 @@ class VerCiudad_Serializer(serializers.ModelSerializer):
 class VerHorario_Serializer(serializers.ModelSerializer):
     class Meta:
         model = Horario
-        fields = ['entrada','salida','estado']
+        fields = ['id','entrada','salida','estado']
 
 
 class PerfilSerializer(serializers.ModelSerializer):
@@ -246,10 +246,10 @@ class EditHorario_Serializer(serializers.ModelSerializer):
         model = Horario
         fields = ['entrada','salida','estado']
 
-class VerHorario_Serializer(serializers.ModelSerializer):
+class VerHorarioNew_Serializer(serializers.ModelSerializer):
     class Meta:
         model = Horario
-        fields = ['entrada','salida','estado','usuario']
+        fields = ['id','entrada','salida','estado','usuario']
     
 
 # perfil edtiar

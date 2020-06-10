@@ -522,7 +522,7 @@ def ver_horario(request, id_horario):
         horario = Horario.objects.get(pk=id_horario)
     except:
         raise NotFound('No se encontro el horario')
-    obj = VerHorario_Serializer(horario).data
+    obj = VerHorarioNew_Serializer(horario).data
     return Response(obj)
 
 
@@ -533,7 +533,7 @@ def ver_horario(request, id_horario):
 def lista_horarios(request):
     usuario = get_user_by_token(request)
     horarios = Horario.objects.filter(usuario__id=usuario.id)
-    obj = VerHorario_Serializer(horarios, many=True).data
+    obj = VerHorarioNew_Serializer(horarios, many=True).data
     return Response(obj)
 
 
