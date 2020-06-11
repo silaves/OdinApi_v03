@@ -94,6 +94,8 @@ class ShowSucursal_Serializer(serializers.Serializer):
             'telefono':instance.telefono,
             'ubicacion':instance.ubicacion,
             'direccion':instance.direccion,
+            'calificacion':instance.calificacion,
+            'cant_calificacion':instance.cant_calificacion,
             'foto':instance.foto.url if instance.foto else None,
             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
             'empresa':{
@@ -216,6 +218,7 @@ class ShowProductoAdvanced_Serializer(serializers.Serializer): # revisar
             'descripcion':instance.descripcion,
             'precio':str(instance.precio),
             'estado':instance.estado,
+            # 'creado':instance.creado,
             'sucursal':{
                 'id':instance.sucursal.id,
                 'nombre':instance.sucursal.nombre,

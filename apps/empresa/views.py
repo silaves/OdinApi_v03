@@ -173,7 +173,7 @@ def getSucursales(request, id_empresa, estado):
 
 
 # lista de todas las sucursales
-@swagger_auto_schema(method="GET",responses={200:SucursalSerializer(many=True)},operation_id="Lista de Todas las Sucursales",
+@swagger_auto_schema(method="GET",responses={200:SucursalSerializer(many=True)},operation_id="Lista de Todas las Sucursales, comida",
     operation_description="Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos las sucursales")
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
@@ -188,6 +188,26 @@ def getAll_Sucursales(request, estado, id_ciudad):
     else:
         sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad)
     
+    data = ShowSucursal_Serializer(sucursales, many=True).data
+    return Response(data)
+
+
+# lista de las sucursales con mayor puntuacion
+@swagger_auto_schema(method="GET",responses={200:SucursalSerializer(many=True)},operation_id="Lista de las Sucursales con mayor puntuacion, comida",
+    operation_description="Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos las sucursales")
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def getAll_Sucursales_max_calificacion(request, estado, id_ciudad):
+    ciudad = revisar_ciudad(id_ciudad)
+
+    if estado == 'A':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad, estado=True).order_by('-calificacion')
+    elif estado == 'I':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad,estado=False).order_by('-calificacion')
+    elif estado == 'T':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad).order_by('-calificacion')
+    else:
+        raise NotFound('No se encontro la url')
     data = ShowSucursal_Serializer(sucursales, many=True).data
     return Response(data)
 
@@ -336,6 +356,27 @@ def get_productos_estado_by_sucursal(request, id_sucursal, estado):
         producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(estado=False, sucursal__id=id_sucursal)
     else:
         producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(sucursal__id=id_sucursal)
+
+    data = ShowProductoAdvanced_Serializer(producto, many=True, context={'request':request}).data
+    return Response(data)
+
+
+# obtener productos por sucursal ( estado ) los ultimos
+@swagger_auto_schema(method="GET",responses={200:ShowProductoAdvanced_Serializer},operation_id="Lista de ultimos Productos por Sucursal ( productos y combos ) ULTIMOS",
+    operation_description="Devuelve una lista de productos de acuerdo al estado de una sucursal. En el campo 'is_combo' si el producto es un combo devuelve true caso contrario false."
+    "\n\n\tis_combo : true //es un combo\n\n\tis_combo : false //no es combo\n Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos los productos")
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def get_productos_estado_by_sucursal_ultimos(request, estado, limite):
+    
+    if estado == 'A':
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA,estado=True).order_by('-creado')[:limite]
+    elif estado == 'I':
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA,estado=False).order_by('-creado')[:limite]
+    elif estado == 'T':
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA).order_by('-creado')[:limite]
+    else:
+        raise NotFound('No se encontro la url')
 
     data = ShowProductoAdvanced_Serializer(producto, many=True, context={'request':request}).data
     return Response(data)

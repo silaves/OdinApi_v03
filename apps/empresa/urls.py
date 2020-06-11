@@ -16,7 +16,10 @@ urlpatterns = [
     path('empresa/sucursal/crear/', views.crearSucursal, name='Crear Sucursal'),
     path('empresa/sucursal/<int:id_sucursal>/editar/', views.editar_sucursal, name='Modificar Sucursal'),
     path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/', views.getAll_Sucursales, name='Lista todas Sucursales'),
-    path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/todo/', views.get_sucurales_sistema, name='Lista todas Sucursales Sistema'),
+
+    path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/', views.getAll_Sucursales, name='Lista todas Sucursales'),
+
+    path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/max/', views.getAll_Sucursales_max_calificacion, name='Lista todas Sucursales del Sistema'),
     path('empresa/<int:id_empresa>/sucursal/<str:estado>/lista/', views.getSucursales, name='Lista de Sucursales por Empresa'),
     path('empresa/sucursal/<int:id_sucursal>/', views.getSucursal, name='Obtener Sucursal'),
     path('empresa/sucursal/<int:id_sucursal>/disponible/', views.cambiar_diponible_sucursal, name='Cambiar Disponibilidad Sucursal'),
@@ -28,6 +31,8 @@ urlpatterns = [
     path('empresa/sucursal/producto/<int:id_producto>/editar/', views.editar_producto, name='Editar Producto'),
     path('empresa/sucursal/producto/<int:id_producto>/', views.get_productos_finales, name='Ver Producto'),
     path('empresa/sucursal/<int:id_sucursal>/producto/<str:estado>/', views.get_productos_estado_by_sucursal, name='Lista Producto por Sucursal (activos o inactivos)'),
+
+    path('empresa/sucursal/producto/<str:estado>/ultimos/<int:limite>/', views.get_productos_estado_by_sucursal_ultimos, name='Lista Producto por Sucursal (activos o inactivos) ULTIMOS'),
 
     path('empresa/sucursal/<int:id_sucursal>/producto/<str:estado>/producto/', views.get_productos_estado_productos_by_sucursal, name='Lista Producto por Sucursal (activos o inactivos) productos'),
     path('empresa/sucursal/<int:id_sucursal>/producto/<str:estado>/combo/', views.get_productos_estado_combos_by_sucursal, name='Lista Producto por Sucursal (activos o inactivos) combos'),
