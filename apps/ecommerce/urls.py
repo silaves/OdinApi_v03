@@ -21,7 +21,7 @@ urlpatterns = [
     path('ecommerce/articulo/<str:estado>/todos/number/', views.get_articulos_number_pagination, name='Listar todos los articulos - Number'),
 
     # por categoria
-    # path('ecommerce/articulo/<str:estado>/categoria/<int:id_categoria>/', views.get_articulos_categoria, name='Listar de Articulos por Categoria'),
+    path('ecommerce/articulo/<str:estado>/categoria/<int:id_categoria>/', views.get_articulos_categoria, name='Listar de Articulos por Categoria'),
 
     # FAVORITO
 

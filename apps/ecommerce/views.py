@@ -63,13 +63,12 @@ def solve_categoria_lista(id_padre,estado, _ids):
         qs = CategoriaProducto.objects.filter(padre__id=id_padre)
     
     if qs.count() == 0:
-        print(_ids)
         return _ids
-
-    for q in qs:
-        _ids.append(q.id)
-        solve_categoria_lista(q.id, estado, _ids)
-
+    else:
+        for q in qs:
+            _ids.append(q.id)
+            solve_categoria_lista(q.id, estado, _ids)
+        return solve_categoria_lista(0,estado,_ids)
 
 # listar categorias productos - por hijos lista
 @swagger_auto_schema(method="GET",responses={200:ResponseCategoriaProducto(many=True)},operation_id="Lista de todas las Categorias Productos de una Categoria Padre LISTA")
@@ -260,38 +259,29 @@ def get_articulos_number_pagination(request, estado):
 
 # ARTICULOS POR CATEGORIA
 
-# # listar articulos por categoria
-# @swagger_auto_schema(method="GET",responses={200:ResponseBasicProducto(many=True)},operation_id="Listar articulos por categoria")
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def get_articulos_categoria(request, estado, id_categoria):
-#     categoria = get_or_error_categoria(id_categoria)
-#     if not categoria.estado:
-#         raise PermissionDenied('La categoria esta inactiva')
-#     _ids = []
-#     xx = solve_categoria_lista(categoria.id,'A',[])
-#     print(xx[0])
-#     # _c = categoria
-#     # categorias_hijo = [categoria.id]
-#     # while ( True ):
-#     #     if _c.padre == None:
-#     #         break
-#     #     _c= CategoriaProducto.objects.get(pk=_c.padre)
-#     #     if _c.estado is False:
-#     #         break
-#     #     categorias_hijo.append(_c.id)
-
-#     if estado == 'A':
-#         query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, categoria__id__in=categorias_hijo, estado=True).order_by('-creado')
-#     elif estado == 'I':
-#         query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, estado=False).order_by('-creado')
-#     elif estado == 'T':
-#         query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE).order_by('-creado')
-#     else:
-#         raise NotFound('No se encontro la url')
+# listar articulos por categoria
+@swagger_auto_schema(method="GET",responses={200:ResponseBasicProducto(many=True)},operation_id="Listar articulos por categoria", 
+    operation_description="Devuelve una lista de articulos de acuerdo a una categoria, si esta categoria tiene hijos tambien se listara los productos de las categorias hijos.")
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_articulos_categoria(request, estado, id_categoria):
+    categoria = get_or_error_categoria(id_categoria)
+    if not categoria.estado:
+        raise PermissionDenied('La categoria esta inactiva')
     
-#     sr = ShowBasicArticulo_Serializer(query, many=True).data
-#     return Response(sr)
+    categorias_hijo = solve_categoria_lista(categoria.id,'A',[id_categoria])
+
+    if estado == 'A':
+        query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, categoria__id__in=categorias_hijo, estado=True).order_by('-creado')
+    elif estado == 'I':
+        query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, categoria__id__in=categorias_hijo, estado=False).order_by('-creado')
+    elif estado == 'T':
+        query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, categoria__id__in=categorias_hijo).order_by('-creado')
+    else:
+        raise NotFound('No se encontro la url')
+    
+    sr = ShowBasicArticulo_Serializer(query, many=True).data
+    return Response(sr)
 
 
 # # listar articulos - pagination cursor

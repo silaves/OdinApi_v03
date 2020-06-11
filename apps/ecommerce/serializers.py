@@ -39,17 +39,17 @@ class ShowCategoriaProductoNivel_Serializer(serializers.Serializer):
     def to_representation(self, instance):
         estado = self.context.get('estado')
         if estado == 'A':
-            query = CategoriaNoticia.objects.filter(padre__id=instance.id, estado=True)
+            query = CategoriaProducto.objects.filter(padre__id=instance.id, estado=True)
         elif estado == 'I':
-            query = CategoriaNoticia.objects.filter(padre__id=instance.id, estado=False)
+            query = CategoriaProducto.objects.filter(padre__id=instance.id, estado=False)
         else:
-            query = CategoriaNoticia.objects.filter(padre__id=instance.id)
+            query = CategoriaProducto.objects.filter(padre__id=instance.id)
 
         return {
             'id':instance.id,
             'nombre':instance.nombre,
             'codigo':instance.codigo,
-            'sub_categorias': ShowCategoriaNivel_Serializer( query, many=True, context={'estado':estado} ).data
+            'sub_categorias': ShowCategoriaProductoNivel_Serializer( query, many=True, context={'estado':estado} ).data
         }
 
 
