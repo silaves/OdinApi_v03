@@ -157,14 +157,16 @@ class FotoProducto(models.Model):
 class Favorito(models.Model):
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    creado = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        unique_together =  (('usuario','producto'),)
         db_table = 'FAVORITO'
         verbose_name = _('favorito')
         verbose_name_plural = _('favoritos')
     
     def __str__(self):
-        return self.id
+        return str(self.id)
 
 
 

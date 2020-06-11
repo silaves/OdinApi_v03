@@ -17,20 +17,6 @@ from .serializers import *
 from .pagination import CursorPagination, NumberPagination
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny,])
-def test1(request):
-
-    data = Test_Serializer(data=request.data)
-    data.is_valid(raise_exception=True)
-    _json = data.validated_data['atributos']
-    for x in _json:
-        print(x,len(_json[x]))
-    # x = request.data['data']
-    # x = x+'s"s'
-    # print(x)
-    return Response({"mensaje":"ok"})
-
 
 # CATEGORIA PRODUCTOS
 
@@ -77,6 +63,7 @@ def solve_categoria_lista(id_padre,estado, _ids):
         qs = CategoriaProducto.objects.filter(padre__id=id_padre)
     
     if qs.count() == 0:
+        print(_ids)
         return _ids
 
     for q in qs:
@@ -113,6 +100,26 @@ def get_categorias_productos_hijo_niveles(request, id_categoria, estado):
     return Response(data)
 
 
+# SUCURSALES
+
+# lista de todas las sucursales ecommerce
+@swagger_auto_schema(method="GET",responses={200:ShowSucursal_Serializer(many=True)},operation_id="Lista de Todas las Sucursales E-commerce",
+    operation_description="Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos las sucursales")
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def getAll_Sucursales_eco(request, estado, id_ciudad):
+    ciudad = revisar_ciudad(id_ciudad)
+    revisar_estado_AIT(estado)
+
+    if estado == 'A':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.ECOMMERCE,ciudad__id=id_ciudad, estado=True)
+    elif estado == 'I':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.ECOMMERCE,ciudad__id=id_ciudad,estado=False)
+    else:
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.ECOMMERCE,ciudad__id=id_ciudad)
+    
+    data = ShowSucursal_Serializer(sucursales, many=True).data
+    return Response(data)
 
 
 
@@ -251,8 +258,124 @@ def get_articulos_number_pagination(request, estado):
 
 
 
+# ARTICULOS POR CATEGORIA
+
+# # listar articulos por categoria
+# @swagger_auto_schema(method="GET",responses={200:ResponseBasicProducto(many=True)},operation_id="Listar articulos por categoria")
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def get_articulos_categoria(request, estado, id_categoria):
+#     categoria = get_or_error_categoria(id_categoria)
+#     if not categoria.estado:
+#         raise PermissionDenied('La categoria esta inactiva')
+#     _ids = []
+#     xx = solve_categoria_lista(categoria.id,'A',[])
+#     print(xx[0])
+#     # _c = categoria
+#     # categorias_hijo = [categoria.id]
+#     # while ( True ):
+#     #     if _c.padre == None:
+#     #         break
+#     #     _c= CategoriaProducto.objects.get(pk=_c.padre)
+#     #     if _c.estado is False:
+#     #         break
+#     #     categorias_hijo.append(_c.id)
+
+#     if estado == 'A':
+#         query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, categoria__id__in=categorias_hijo, estado=True).order_by('-creado')
+#     elif estado == 'I':
+#         query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, estado=False).order_by('-creado')
+#     elif estado == 'T':
+#         query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE).order_by('-creado')
+#     else:
+#         raise NotFound('No se encontro la url')
+    
+#     sr = ShowBasicArticulo_Serializer(query, many=True).data
+#     return Response(sr)
 
 
+# # listar articulos - pagination cursor
+# @swagger_auto_schema(method="GET",responses={200:ResponseBasicProducto(many=True)},operation_id="Lista de Todos lo articulos - Paginador Cursor")
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def get_articulos_cursor_pagination(request, estado):
+#     if estado == 'A':
+#         query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, estado=True).order_by('-creado')
+#     elif estado == 'I':
+#         query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, estado=False).order_by('-creado')
+#     elif estado == 'T':
+#         query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE).order_by('-creado')
+#     else:
+#         raise NotFound('No se encontro la url')
+
+#     paginator = CursorPagination()
+    
+#     page = paginator.paginate_queryset(query, request)
+#     serializer = ShowBasicArticulo_Serializer(page, many=True).data
+#     data = paginator.get_paginated_response(serializer)
+#     return data
+
+
+
+
+# # listar articulos - pagination number
+# @swagger_auto_schema(method="GET",responses={200:ResponseBasicProducto(many=True)},operation_id="Lista de Todos lo articulos - Paginador Number")
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def get_articulos_number_pagination(request, estado):
+#     if estado == 'A':
+#         query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, estado=True).order_by('-creado')
+#     elif estado == 'I':
+#         query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, estado=False).order_by('-creado')
+#     elif estado == 'T':
+#         query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE).order_by('-creado')
+#     else:
+#         raise NotFound('No se encontro la url')
+
+#     paginator = NumberPagination()
+    
+#     page = paginator.paginate_queryset(query, request)
+#     serializer = ShowBasicArticulo_Serializer(page, many=True).data
+#     data = paginator.get_paginated_response(serializer)
+#     return data
+
+
+
+
+
+# FAVORITO
+
+# agregar a favorito
+@swagger_auto_schema(method="POST",responses={200:'Se agrego a favoritos'},operation_id="Agregar producto a favoritos")
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_favorito(request, id_producto):
+    usuario = get_user_by_token(request)
+    articulo = revisar_producto(id_producto)
+    Favorito.objects.create(usuario=usuario,producto=articulo)
+    return Response({'mensaje':'Se agrego a favoritos'})
+
+
+# quitar de favoritos
+@swagger_auto_schema(method="POST",responses={200:'Se quito de favoritos'},operation_id="Quitar producto de favoritos")
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def remove_favorito(request, id_producto):
+    usuario = get_user_by_token(request)
+    articulo = revisar_producto(id_producto)
+    articulo.delete()
+    return Response({'mensaje':'Se quito de favoritos'})
+
+
+# listar favoritos
+@swagger_auto_schema(method="GET",responses={200:ResponseBasicProducto(many=True)},operation_id="Listar Articulos Favoritos")
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_favoritos(request):
+    usuario = get_user_by_token(request)
+    articulos = Producto.objects.filter(id__in=Favorito.objects.filter(usuario__id=usuario.id).values('producto'))
+    data = ShowBasicArticulo_Serializer(articulos, many=True).data
+    return Response(data)
 
 
 
@@ -278,7 +401,20 @@ def revisar_propietario_sucursal(usuario, sucursal):
         raise PermissionDenied('El usuario no esta asociado a la sucursal','no_permitido')
     return True
 
-def revisar_estado_AI(estado):
-    if not (estado == 'A' | estado == 'I' | estado == 'T'):
+def revisar_estado_AIT(estado):
+    if not (estado == 'A' or estado == 'I' or estado == 'T'):
         raise NotFound('No se encontro la url')
     return estado
+
+def revisar_ciudad(id_ciudad):
+    if Ciudad.objects.filter(id=id_ciudad, estado=True).exists():
+        return True
+    else:
+        raise NotFound('La ciudad no existe o esta inactiva')
+
+def get_or_error_categoria(id_categoria):
+    try:
+        categoria = CategoriaProducto.objects.get(pk=id_categoria)
+        return categoria
+    except:
+        raise NotFound('No existe la categoria')

@@ -53,7 +53,43 @@ class ShowCategoriaProductoNivel_Serializer(serializers.Serializer):
         }
 
 
+# SUCURSAL
 
+class ShowSucursal_Serializer(serializers.Serializer):
+
+    def to_representation(self, instance):
+        return {
+            'id':instance.id,
+            'nombre':instance.nombre,
+            'disponible':instance.disponible,
+            'estado':instance.estado,
+            'telefono':instance.telefono,
+            'ubicacion':instance.ubicacion,
+            'direccion':instance.direccion,
+            'foto':instance.foto.url if instance.foto else None,
+            # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
+            'empresa':{
+                'id':instance.empresa.id, 
+                'nombre':instance.empresa.nombre,
+                'descripcion':instance.empresa.descripcion,
+                'categoria':{
+                    'id':instance.empresa.categoria.id,
+                    'nombre':instance.empresa.categoria.nombre,
+                    'estado':instance.empresa.categoria.estado
+                }
+            },
+            'hora_inicio':instance.hora_inicio,
+            'hora_fin':instance.hora_fin,
+            'ciudad':{
+                'id':instance.ciudad.id,
+                'nombre':instance.ciudad.nombre,
+                'estado':instance.ciudad.estado,
+                'comision_porcentaje':str(instance.ciudad.comision_porcentaje)
+            }
+        }
+
+
+# ARTICULOS
 
 
 class CrearArticulo_Serializer(serializers.ModelSerializer):
