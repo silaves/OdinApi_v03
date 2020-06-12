@@ -9,7 +9,7 @@ from apps.empresa.models import Producto
 scheduler = BackgroundScheduler()
 scheduler.add_jobstore(DjangoJobStore(), "default")
 
-@register_job(scheduler,'cron', hour='6', minute='22')
+@register_job(scheduler,'cron', hour='6')
 def activar_desactivar_productos_del_dia():
     dia = date.today().weekday()
     productos = Producto.objects.select_related('sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA)
