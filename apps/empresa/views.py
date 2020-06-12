@@ -361,26 +361,6 @@ def get_productos_estado_by_sucursal(request, id_sucursal, estado):
     return Response(data)
 
 
-# obtener productos por sucursal ( estado ) los ultimos
-@swagger_auto_schema(method="GET",responses={200:ShowProductoAdvanced_Serializer},operation_id="Lista de ultimos Productos por Sucursal ( productos y combos ) ULTIMOS",
-    operation_description="Devuelve una lista de productos de acuerdo al estado de una sucursal. En el campo 'is_combo' si el producto es un combo devuelve true caso contrario false."
-    "\n\n\tis_combo : true //es un combo\n\n\tis_combo : false //no es combo\n Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos los productos")
-@api_view(['GET'])
-@permission_classes((IsAuthenticated,))
-def get_productos_estado_by_sucursal_ultimos(request, estado, limite):
-    
-    if estado == 'A':
-        producto = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA,estado=True).order_by('-creado')[:limite]
-    elif estado == 'I':
-        producto = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA,estado=False).order_by('-creado')[:limite]
-    elif estado == 'T':
-        producto = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA).order_by('-creado')[:limite]
-    else:
-        raise NotFound('No se encontro la url')
-
-    data = ShowProductoAdvanced_Serializer(producto, many=True, context={'request':request}).data
-    return Response(data)
-
 
 # get productos por estado by sucursal - solo productos
 @swagger_auto_schema(method="GET",responses={200:ShowProductoMedio_Serializer},operation_id="Lista de Productos por Sucursal ( productos )",
@@ -429,6 +409,55 @@ def get_productos_estado_combos_by_sucursal(request, id_sucursal, estado):
 
     data = ShowProductoMedio_Serializer(producto, many=True, context={'request':request}).data
     return Response(data)
+
+
+
+
+# LISTAS DE PRODUCTOS PARA CLIENTE
+
+# obtener productos por sucursal ( estado ) los ultimos - clientes
+@swagger_auto_schema(method="GET",responses={200:ShowProductoAdvanced_Serializer},operation_id="Lista de ultimos Productos por Sucursal ( productos y combos ) ULTIMOS para cliente",
+    operation_description="Devuelve una lista de productos de acuerdo al estado de una sucursal. En el campo 'is_combo' si el producto es un combo devuelve true caso contrario false."
+    "\n\n\tis_combo : true //es un combo\n\n\tis_combo : false //no es combo\n Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos los productos")
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def get_productos_estado_by_sucursal_ultimos(request, estado, limite):
+    
+    if estado == 'A':
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA,estado=True, combo_activo=True).order_by('-creado')[:limite]
+    elif estado == 'I':
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA,estado=False, combo_activo=True).order_by('-creado')[:limite]
+    elif estado == 'T':
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA, combo_activo=True).order_by('-creado')[:limite]
+    else:
+        raise NotFound('No se encontro la url')
+
+    data = ShowProductoAdvanced_Serializer(producto, many=True, context={'request':request}).data
+    return Response(data)
+
+
+# obtener productos por sucursal ( estado ) - cliente
+@swagger_auto_schema(method="GET",responses={200:ShowProductoAdvanced_Serializer},operation_id="Lista de Productos por Sucursal ( productos y combos ) para clientes",
+    operation_description="Devuelve una lista de productos de acuerdo al estado de una sucursal. En el campo 'is_combo' si el producto es un combo devuelve true caso contrario false."
+    "\n\n\tis_combo : true //es un combo\n\n\tis_combo : false //no es combo\n Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos los productos")
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def get_productos_estado_by_sucursal_cliente(request, id_sucursal, estado):
+    usuario = get_user_by_token(request)
+    sucursal = revisar_sucursal(id_sucursal)
+    estado = revisar_estado_producto(estado)
+    
+    if estado == 'A':
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(estado=True, combo_activo=True, sucursal__id=id_sucursal)
+    elif estado == 'I':
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(estado=False, combo_activo=True, sucursal__id=id_sucursal)
+    else:
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(combo_activo=True, sucursal__id=id_sucursal)
+
+    data = ShowProductoAdvanced_Serializer(producto, many=True, context={'request':request}).data
+    return Response(data)
+
+
 
 
 

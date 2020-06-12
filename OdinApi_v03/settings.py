@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'apps.periodico',
     'apps.ecommerce',
     'drf_yasg',
+    'django_apscheduler',
 ]
 
 MIDDLEWARE = [
@@ -176,6 +177,10 @@ MAXIMO_TAM_ARCHIVOS = 3
 DATE_FORMAT = '%Y-%m-%d'
 BASE_STATIC_FILES = BASE_DIR
 
+
+# SCHEDULER
+APSCHEDULER_DATETIME_FORMAT =  "N j, Y, f:s a"  # Default
+SCHEDULER_AUTOSTART = True
 
 
 # variables globales

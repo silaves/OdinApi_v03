@@ -101,6 +101,8 @@ class Producto(models.Model):
     foto = models.ImageField(upload_to='productos/', blank=True, null=True)
     sucursal = models.ForeignKey(Sucursal, on_delete=models.PROTECT)
     is_combo = models.BooleanField(default=False)
+    combo_activo = models.BooleanField(default=True)
+    dias_activos = models.CharField(max_length=7, default='1111111', blank=False)
     atributos = JSONField(blank=True, null=True)
     categoria = models.ForeignKey(CategoriaProducto,blank=True,null=True,on_delete=models.PROTECT)
     creado = models.DateTimeField(auto_now_add=True)
