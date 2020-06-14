@@ -98,7 +98,7 @@ class Perfil(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
     telefono = models.IntegerField(blank=True,null=True)
     cant_calificacion = models.PositiveIntegerField(default=0)
-    calificacion = models.DecimalField(_('Calificacion'),default=0,max_digits=3, decimal_places=1)
+    calificacion = models.DecimalField(_('Calificacion'),default=0,max_digits=10, decimal_places=9)
     disponibilidad = models.CharField(max_length=1, default='N',choices=(
 		('L','Libre'),('O', 'Ocupado'),('N', 'No Disponible')
 	))

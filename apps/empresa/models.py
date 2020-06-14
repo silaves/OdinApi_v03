@@ -53,7 +53,7 @@ class Sucursal(models.Model):
     ciudad = models.ForeignKey(Ciudad,blank=True,null=True, on_delete=models.PROTECT)
     # encargado = models.ForeignKey(Usuario,blank=True,null=True, on_delete=models.PROTECT)
     cant_calificacion = models.PositiveIntegerField(default=0)
-    calificacion = models.DecimalField(_('Calificacion'),default=0,max_digits=3, decimal_places=1)
+    calificacion = models.DecimalField(_('Calificacion'),default=0,max_digits=10, decimal_places=9)
 
     class Meta:
         db_table = 'SUCURSAL'

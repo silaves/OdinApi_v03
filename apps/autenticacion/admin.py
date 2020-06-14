@@ -19,18 +19,18 @@ from .models import Usuario, Perfil, Horario,VersionesAndroidApp, Ciudad, Encarg
 class PerfilInline(admin.StackedInline):
     model = Perfil
     # fields = ('telefono', 'calificacion','disponibilidad' )
-    readonly_fields = ('calificacion',)
+    readonly_fields = ('cant_calificacion','calificacion',)
     can_delete = False
 
     def get_fields(self, request, obj=None):
         if obj is None:
             if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD).exists():
                 return ('telefono',)    
-            return ('telefono', 'calificacion','disponibilidad')
+            return ('telefono', 'cant_calificacion','calificacion','disponibilidad')
         else:
             if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD).exists():
                 return ('telefono','disponibilidad',)    
-            return ('telefono', 'calificacion','disponibilidad')
+            return ('telefono', 'cant_calificacion', 'calificacion','disponibilidad')
 
 class HorarioForm(forms.ModelForm):
     entrada = forms.TimeField(widget=AdminTimeWidget(format='%H:%M'))

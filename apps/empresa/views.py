@@ -1670,7 +1670,7 @@ def calificar_para_repartidor(request, id_pedido):
             value_cliente = obj.validated_data['value_cliente']
             value_empresario = obj.validated_data['value_empresario']
             try:
-                if value_cliente > 0:
+                if value_cliente > 0 and pedido.cliente.id != pedido.sucursal.empresa.empresario.id:
                     perfil = pedido.cliente.perfil
                     old_cal = perfil.cant_calificacion
                     old_val = perfil.calificacion
@@ -1714,7 +1714,7 @@ def calificar_para_empresa(request, id_pedido):
             value_cliente = obj.validated_data['value_cliente']
             value_repartidor = obj.validated_data['value_repartidor']
             try:
-                if value_cliente > 0:
+                if value_cliente > 0 and request.user.id != pedido.cliente.id:
                     perfil = pedido.cliente.perfil
                     old_cal = perfil.cant_calificacion
                     old_val = perfil.calificacion
@@ -1754,6 +1754,8 @@ def crear_ranking(id_pedido, id_usuario):
         if not RankingProducto.objects.filter(producto=p.producto_final, usuario=id_usuario).exists():
             rank = RankingProducto.objects.create(producto=p.producto_final, usuario=id_usuario)
 
+@swagger_auto_schema(method="POST",request_body=CalificarProducto_Serializer,responses={200:'Se ha calificado'},operation_id="Calificar Producto",
+    operation_description="Permite calificar un producto siempre y cuando halla pedido alguna vez el producto. Tambien se utiliza la misma url para editar la puntuacion")
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsCliente,])
 def calificar_producto(request, id_producto):
@@ -1781,7 +1783,6 @@ def calificar_producto(request, id_producto):
     rank.puntuacion = obj.validated_data['puntuacion']
     rank.save()
     producto.save()
-
     return Response({'mensaje':'Se ha calificado el producto'})
 
 
