@@ -38,6 +38,9 @@ urlpatterns = [
     path('empresa/sucursal/<int:id_sucursal>/producto/<str:estado>/producto/', views.get_productos_estado_productos_by_sucursal, name='Lista Producto por Sucursal (activos o inactivos) productos'),
     path('empresa/sucursal/<int:id_sucursal>/producto/<str:estado>/combo/', views.get_productos_estado_combos_by_sucursal, name='Lista Producto por Sucursal (activos o inactivos) combos'),
 
+    # RANKING
+
+    path('empresa/sucursal/producto/<int:id_producto>/calificar/', views.calificar_producto, name='Calificar Producto'),
     
     # COMBO
     path('empresa/sucursal/combo/crear/', views.crear_combo, name='Crear Combo'),

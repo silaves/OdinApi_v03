@@ -320,6 +320,7 @@ class CrearComboSerializer(serializers.ModelSerializer):
     def validate_dias_activos(self, value):
         if not re.match("^[01]{7}$",value):
             raise serializers.ValidationError('El campo debe tener 7 caracteres y/o ser ceros o unos')
+        return value
 
     def create(self, validated_data):
         data = validated_data.pop('combo')
@@ -374,6 +375,7 @@ class EditarComboSerializer(serializers.ModelSerializer):
     def validate_dias_activos(self, value):
         if not re.match("^[01]{7}$",value):
             raise serializers.ValidationError('El campo debe tener 7 caracteres y/o ser ceros o unos')
+        return value
     # def create(self, validated_data):
     #     data = validated_data.pop('combo')
     #     return Producto.objects.create(**validated_data)
@@ -911,3 +913,6 @@ class CalificarRepartidor_Serializer(serializers.Serializer):
 class CalificarEmpresario_Serializer(serializers.Serializer):
     value_cliente = serializers.IntegerField(max_value=5,min_value=0, required=True)
     value_repartidor = serializers.IntegerField(max_value=5,min_value=0, required=True)
+
+class CalificarProducto_Serializer(serializers.Serializer):
+    puntuacion = serializers.IntegerField(max_value=5,min_value=0, required=True)

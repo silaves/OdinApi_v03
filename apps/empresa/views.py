@@ -18,22 +18,17 @@ from requests.exceptions import HTTPError
 
 from rest_framework.exceptions import NotFound,PermissionDenied
 from rest_framework import permissions, exceptions
-from rest_framework import generics, permissions, status, views
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import api_view, permission_classes, renderer_classes, parser_classes, action
 
-from social_django.utils import load_strategy, load_backend
-from social_core.backends.oauth import BaseOAuth2
-from social_core.exceptions import MissingBackend, AuthTokenError, AuthForbidden
 
 from apps.autenticacion.views import permission_required
 from apps.autenticacion.serializers import UsuarioSerializer,PerfilSerializer
 from apps.autenticacion.models import Usuario, Ciudad, Perfil, Horario, TarifaCostoEnvio
 from apps.autenticacion.views import get_user_by_token, is_member
+from apps.autenticacion.permissions import IsCliente
 
 from .models import *
 from .serializers import *
@@ -774,7 +769,7 @@ def cambiar_pedido_en_finalizado_cliente(request, id_pedido):
         raise PermissionDenied('Usted no realizo el pedido')
     pedido.estado = 'F'
     pedido.save()
-
+    crear_ranking(id_pedido, request.user.id)
     return Response({'mensaje':'El pedido ha sido finalizado'})
 
 
@@ -1742,6 +1737,59 @@ def calificar_para_empresa(request, id_pedido):
     else:
         raise PermissionDenied('Usted no esta autorizado')
     return Response({'mensaje':'OK'})
+
+
+
+
+
+
+
+
+# RANKING PRODUCTOS
+
+#   crear un puntuacion en el ranking
+def crear_ranking(id_pedido, id_usuario):
+    productos = PedidoProducto.objects.filter(pedido__id=id_pedido)
+    for p in productos:
+        if not RankingProducto.objects.filter(producto=p.producto_final, usuario=id_usuario).exists():
+            rank = RankingProducto.objects.create(producto=p.producto_final, usuario=id_usuario)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsCliente,])
+def calificar_producto(request, id_producto):
+    try:
+        producto = Producto.objects.get(pk=id_producto)
+    except:
+        raise NotFound('No se encontro el producto')
+    obj = CalificarProducto_Serializer(data=request.data)
+    obj.is_valid(raise_exception=True)
+    
+    try:
+        rank = RankingProducto.objects.get(producto=producto, usuario=request.user.id)
+    except:
+        raise PermissionDenied('Usted no esta autorizado para calificar')
+
+    old_cal = producto.calificacion
+    old_cant = producto.cant_calificacion
+    
+    if rank.is_calificado:
+        producto.calificacion = Decimal( ( ((old_cal*old_cant) - rank.puntuacion ) + obj.validated_data['puntuacion']) / old_cant )
+    else:
+        producto.cant_calificacion = old_cant + 1
+        producto.calificacion = Decimal( ((old_cal*old_cant) + obj.validated_data['puntuacion']) / (old_cant+1) )
+        rank.is_calificado = True
+    rank.puntuacion = obj.validated_data['puntuacion']
+    rank.save()
+    producto.save()
+
+    return Response({'mensaje':'Se ha calificado el producto'})
+
+
+
+
+
+
+
 
 
 # FUNCIONES AUXILIARES

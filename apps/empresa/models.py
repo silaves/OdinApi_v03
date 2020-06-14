@@ -106,6 +106,8 @@ class Producto(models.Model):
     atributos = JSONField(blank=True, null=True)
     categoria = models.ForeignKey(CategoriaProducto,blank=True,null=True,on_delete=models.PROTECT)
     creado = models.DateTimeField(auto_now_add=True)
+    cant_calificacion = models.PositiveIntegerField(default=0)
+    calificacion = models.DecimalField(default=0,max_digits=10, decimal_places=9)
 
     class Meta:
         db_table = 'PRODUCTO'
@@ -171,7 +173,16 @@ class Favorito(models.Model):
         return str(self.id)
 
 
+class RankingProducto(models.Model):
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    usuario = models.IntegerField(blank=False)
+    puntuacion = models.IntegerField(default=0)
+    is_calificado = models.BooleanField(default=False)
 
+    class Meta:
+        unique_together =  (('producto','usuario'),)
+        db_table = 'RANKING_PRODUCTO'
+    
 
 # class SubCategoriaProducto(models.Model):
 #     hijo = models.ForeignKey(CategoriaProducto, on_delete=models.CASCADE, related_name='categoria_hijo')

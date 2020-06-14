@@ -149,7 +149,6 @@ class SocialLoginView(generics.GenericAPIView):
     
     @swagger_auto_schema(request_body=serializers.SocialSerializer,operation_id="Social Login")
     def post(self, request):
-        print('RATAS1')
         """Authenticate user through the provider and access_token"""
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -159,7 +158,6 @@ class SocialLoginView(generics.GenericAPIView):
         # backend = load_backend(strategy=strategy, name=provider,redirect_uri=None)
         try:
             backend = load_backend(strategy=strategy, name=provider, redirect_uri=None)
-            print(backend,'----')
         except MissingBackend:
             return Response({'error': 'Please provide a valid provider'},
             status=status.HTTP_400_BAD_REQUEST)
@@ -180,7 +178,6 @@ class SocialLoginView(generics.GenericAPIView):
                 "details": str(error)
             }, status=status.HTTP_400_BAD_REQUEST)
  
-        print('RATAS2')
         try:
             authenticated_user = backend.do_auth(access_token, user=user)
        
@@ -198,7 +195,6 @@ class SocialLoginView(generics.GenericAPIView):
         if authenticated_user and authenticated_user.is_active:
             #generate JWT token
             # login(request, authenticated_user)
-            print(user)
             data={
                 "token": user.token
                 }
@@ -253,7 +249,6 @@ def getDetalleUsuario(request, pk):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated,])
 def cambiar_contrasena(request):
-    print('ratamons')
     usuario = get_user_by_token(request)
     serializer = ChangePasswordSerializer(data=request.data)
     if serializer.is_valid():
@@ -277,7 +272,6 @@ def getPerfil(request):
     try:
         usuario = get_user_by_token(request)
     except Exception as e:
-        print(e)
         return Response({'error':'No se pudo cargar los datos'})
     data = PerfilSerializer(usuario).data
     return Response(data)
@@ -320,7 +314,6 @@ def getTaxistasLibres(request):
         usuario = Usuario.objects.filter(id__in=Perfil.objects.filter(disponibilidad='L').values('usuario__id'))
         # perfil = Perfil.objects.filter(disponibilidad='L').values('id','telefono','calificacion','disponibilidad','usuario')
     except Exception as e:
-        print(e)
         return Response({'error':'No se pudo cargar los datos'})
     data = PerfilSerializer(usuario, many=True).data
     return Response(data)
@@ -335,7 +328,6 @@ def getTaxistasOcupados(request):
         usuario = Usuario.objects.filter(id__in=Perfil.objects.filter(disponibilidad='O').values('usuario__id'))
         # perfil = Perfil.objects.filter(disponibilidad='L').values('id','telefono','calificacion','disponibilidad','usuario')
     except Exception as e:
-        print(e)
         return Response({'error':'No se pudo cargar los datos'})
     data = PerfilSerializer(usuario, many=True).data
     return Response(data)
@@ -350,7 +342,6 @@ def getTaxistasNoDisponibles(request):
         usuario = Usuario.objects.filter(id__in=Perfil.objects.filter(disponibilidad='N').values('usuario__id'))
         # perfil = Perfil.objects.filter(disponibilidad='L').values('id','telefono','calificacion','disponibilidad','usuario')
     except Exception as e:
-        print(e)
         return Response({'error':'No se pudo cargar los datos'})
     data = PerfilSerializer(usuario, many=True).data
     return Response(data)
