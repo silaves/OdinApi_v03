@@ -538,21 +538,28 @@ def crear_combo(request):
 
     sucursal = revisar_sucursal(int(request.data['sucursal']))
     revisar_propietario_sucursal(usuario, sucursal)
-    productos = obj.validated_data['combo']
     
-    combo = obj.save()
-    combo.is_combo = True
-    combo.save()
-    for x in productos:
-        line = x.split('-')
-        pr = int(line[0])
-        ct = int(line[1])
-        productos = Combo()
-        productos.combo = combo
-        productos.producto = Producto.objects.get(pk=pr)
-        productos.cantidad = ct
-        productos.save()
-
+    try:
+        obj.validated_data['combo']
+        pr = obj.validated_data['combo']
+        productos = pr.split('&')
+        productos.pop( len(productos) -1)
+        combo = obj.save()
+        combo.is_combo = True
+        combo.save()
+        for x in productos:
+            line = x.split('-')
+            pr = int(line[0])
+            ct = int(line[1])
+            productos = Combo()
+            productos.combo = combo
+            productos.producto = Producto.objects.get(pk=pr)
+            productos.cantidad = ct
+            productos.save()
+    except:
+        combo = obj.save()
+        combo.is_combo = True
+        combo.save()
     return Response({'mensaje':'Se ha agregado el combo correctamente'})
 
 
@@ -574,7 +581,9 @@ def editar_combo(request, id_combo):
 
     revisar_propietario_sucursal(usuario, combo.sucursal)
     try:
-        productos = obj.validated_data['combo']
+        pr = obj.validated_data['combo']
+        productos = pr.split('&')
+        productos.pop( len(productos) -1)
         obj.validated_data.pop('combo')
         combo = obj.save()
         Combo.objects.filter(combo__id=combo.id).delete()

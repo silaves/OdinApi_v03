@@ -290,9 +290,7 @@ class ShowProductoMedio_Serializer(serializers.Serializer):
 #crear combo
 
 class CrearComboSerializer(serializers.ModelSerializer):
-    combo = serializers.ListField(
-        child = serializers.RegexField('^\d{1,8}[-]\d{1,2}?$',max_length=10)
-    )
+    combo = serializers.RegexField('^(\d{1,8}[-]\d{1,2}[&]){0,}?$',max_length=10, required=False)
 
     class Meta:
         model = Producto
@@ -301,25 +299,30 @@ class CrearComboSerializer(serializers.ModelSerializer):
     def validate(self, data):
         index = 0
         ides = []
-        for x in data['combo']:
-            line = x.split('-')
-            ides.append(int(line[0]))
-            if line[0] == '0' or line[1] == '0':
-                raise serializers.ValidationError({'combo':{str(index):['Los valores no pueden ser negativos o ceros.']}})
-            try:
-                producto = Producto.objects.get(pk=int(line[0]))
-            except:
-                raise serializers.ValidationError({'combo':{str(index):['No existe el producto.']}})
-            if producto.sucursal.id != data['sucursal'].id:
-                raise serializers.ValidationError({'combo':{str(index):['La sucursal del producto no esta asociada a la del padre.']}})
-            index+=1
-        while len(ides) > 0:
-            try:
-                value = ides.pop()
-            except:
-                value = -1
-            if value in ides:
-                raise serializers.ValidationError({'combo':['No debe haber productos repetidos en el combo']})
+        try:
+            combos = data['combo'].split('&')
+            combos.pop(len(combos)-1)
+            for x in combos:
+                line = x.split('-')
+                ides.append(int(line[0]))
+                if line[0] == '0' or line[1] == '0':
+                    raise serializers.ValidationError({'combo':{str(index):['Los valores no pueden ser negativos o ceros.']}})
+                try:
+                    producto = Producto.objects.get(pk=int(line[0]))
+                except:
+                    raise serializers.ValidationError({'combo':{str(index):['No existe el producto.']}})
+                if producto.sucursal.id != data['sucursal'].id:
+                    raise serializers.ValidationError({'combo':{str(index):['La sucursal del producto no esta asociada a la del padre.']}})
+                index+=1
+            while len(ides) > 0:
+                try:
+                    value = ides.pop()
+                except:
+                    value = -1
+                if value in ides:
+                    raise serializers.ValidationError({'combo':['No debe haber productos repetidos en el combo']})
+        except:
+            pass
         return data
     
     def validate_dias_activos(self, value):
@@ -328,17 +331,17 @@ class CrearComboSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        data = validated_data.pop('combo')
+        try:
+            data = validated_data.pop('combo')
+        except:
+            pass
         return Producto.objects.create(**validated_data)
 
 
 
 # editar combo
 class EditarComboSerializer(serializers.ModelSerializer):
-    combo = serializers.ListField(
-        required=False,
-        child = serializers.RegexField('^\d{1,8}[-]\d{1,2}?$',max_length=10)
-    )
+    combo = serializers.RegexField('^(\d{1,8}[-]\d{1,2}[&]){0,}?$',max_length=10)
     nombre = serializers.CharField(required=False,max_length=50)
     precio = serializers.DecimalField(max_digits=7, decimal_places=1, required=False)
 
@@ -351,12 +354,13 @@ class EditarComboSerializer(serializers.ModelSerializer):
         ides = []
         theris_pr = True
         try:
-            data['combo']
+            combos = data['combo'].split('&')
+            combos.pop(len(combos)-1)
         except:
             theris_pr = False
         
         if theris_pr:
-            for x in data['combo']:
+            for x in combos:
                 line = x.split('-')
                 ides.append(int(line[0]))
                 if line[0] == '0' or line[1] == '0':
