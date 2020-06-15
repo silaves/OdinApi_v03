@@ -32,7 +32,9 @@ urlpatterns = [
     path('empresa/sucursal/producto/<int:id_producto>/', views.get_productos_finales, name='Ver Producto'),
     path('empresa/sucursal/<int:id_sucursal>/producto/<str:estado>/', views.get_productos_estado_by_sucursal, name='Lista Producto por Sucursal (activos o inactivos)'),
 
+    path('empresa/sucursal/producto/<str:tipo_producto>/rank/', views.get_productos_estado_ranking, name='Lista Todos los Productos mejores puntuados (activos o inactivos) RANKING Cursor'),
     path('empresa/sucursal/producto/<str:estado>/ultimos/<int:limite>/', views.get_productos_estado_by_sucursal_ultimos, name='Lista Producto por Sucursal (activos o inactivos) ULTIMOS'),
+    path('empresa/sucursal/producto/<str:estado>/<str:tipo_producto>/', views.get_productos_estado, name='Lista Todos los Productos (activos o inactivos) TODO'),
     path('empresa/sucursal/<int:id_sucursal>/producto/<str:estado>/cliente/', views.get_productos_estado_by_sucursal_cliente, name='Lista Producto por Sucursal (activos o inactivos) para cliente'),
 
     path('empresa/sucursal/<int:id_sucursal>/producto/<str:estado>/producto/', views.get_productos_estado_productos_by_sucursal, name='Lista Producto por Sucursal (activos o inactivos) productos'),

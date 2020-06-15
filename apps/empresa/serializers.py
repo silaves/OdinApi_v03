@@ -95,7 +95,7 @@ class ShowSucursal_Serializer(serializers.Serializer):
             'telefono':instance.telefono,
             'ubicacion':instance.ubicacion,
             'direccion':instance.direccion,
-            'calificacion':instance.calificacion,
+            'calificacion':str(instance.calificacion.normalize()),
             'cant_calificacion':instance.cant_calificacion,
             'foto':instance.foto.url if instance.foto else None,
             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
@@ -184,6 +184,9 @@ class ShowProductoBasic_Serializer(serializers.Serializer): # revisar
             'foto':instance.foto.url if instance.foto else None,
             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
             'is_combo':instance.is_combo,
+            'calificacion':str(instance.calificacion.normalize()),
+            'cant_calificacion':instance.cant_calificacion,
+            'is_calificado':self.context.get('is_calificado'),
             'dias_activos':instance.dias_activos,
             'combo':ShowProductoBasicHijo_Serializer( Producto.objects.select_related('sucursal','sucursal__empresa').filter(id__in=Combo.objects.filter(combo_id=instance.id).values('producto')),
             many=True,context={'request':self.context.get('request'),'padre':instance.id} ).data if instance.is_combo is True else False
@@ -248,6 +251,7 @@ class ShowProductoAdvanced_Serializer(serializers.Serializer): # revisar
             'foto':instance.foto.url if instance.foto else None,
             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
             'is_combo':instance.is_combo,
+            'calificacion':str(instance.calificacion.normalize()),
             'dias_activos':instance.dias_activos,
             # 'combo':ShowProducto_Serializer( Producto.objects.select_related('sucursal','sucursal__empresa').filter(id__in=Combo.objects.filter(combo_id=obj.id).values('producto')), many=True ).data if instance.is_combo is True else False
         }
@@ -273,6 +277,7 @@ class ShowProductoMedio_Serializer(serializers.Serializer):
             'foto':instance.foto.url if instance.foto else None,
             # 'foto':self.context.get('request').build_absolute_uri(instance.sucursal.foto.url) if instance.sucursal.foto else None,
             'is_combo':instance.is_combo,
+            'calificacion':str(instance.calificacion.normalize()),
             'dias_activos':instance.dias_activos
         }
 
@@ -339,7 +344,7 @@ class EditarComboSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Producto
-        fields = ['nombre','descripcion','precio','foto','combo','dias_activos']
+        fields = ['nombre','descripcion','precio','foto','combo','dias_activos','estado']
     
     def validate(self, data):
         index = 0

@@ -46,6 +46,25 @@ class CursorPagination(CursorPagination):
             return self.page_size
 
 
+class CursorPagination_Ranking(CursorPagination):
+    page_size = None
+    page_size_query_param = 'page_size'
+    ordering = '-calificacion'
+
+    def get_page_size(self, request):
+        if self.page_size is None:
+            try:
+                param = int(request.query_params['size'])
+            except:
+                raise NotFound('No se econtro la url, revise el parametro size')
+            if param > 0:
+                return param
+            else:
+                raise NotFound('No se econtro la url, parametro size positivo')
+        else:
+            return self.page_size
+
+
 # se da un limite y/o un desplazamiento, es mas cercano a un numberpagination, rapido
 
 class LimitOffsetPagination(LimitOffsetPagination):

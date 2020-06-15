@@ -8,7 +8,8 @@ from urllib.error import HTTPError
 from datetime import timedelta
 from decimal import Decimal, ROUND_HALF_UP,ROUND_UP,ROUND_DOWN
 from django.utils.timezone import make_aware
-from django.db.models import Q
+from django.db.models import Q, F, FloatField
+from django.db.models.functions import Cast
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -32,7 +33,7 @@ from apps.autenticacion.permissions import IsCliente
 
 from .models import *
 from .serializers import *
-from .pagination import CursorPagination, LimitOffsetPagination
+from .pagination import CursorPagination, LimitOffsetPagination, CursorPagination_Ranking
 
 
 
@@ -325,12 +326,17 @@ def editar_producto(request,id_producto):
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def get_productos_finales(request, id_producto):
-    usuario = get_user_by_token(request)
     try:
         producto = Producto.objects.get(pk=id_producto)
     except:
         raise NotFound('No se encontro el producto','producto_not_found')
-    data = ShowProductoBasic_Serializer(producto, context={'request':request}).data
+
+    try:
+        rank = RankingProducto.objects.get(producto=producto, usuario=request.user.id)
+        is_calificado = rank.is_calificado
+    except:
+        is_calificado = None
+    data = ShowProductoBasic_Serializer(producto, context={'request':request,'is_calificado':is_calificado}).data
     return Response(data)
 
 
@@ -346,11 +352,11 @@ def get_productos_estado_by_sucursal(request, id_sucursal, estado):
     estado = revisar_estado_producto(estado)
     
     if estado == 'A':
-        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(estado=True, sucursal__id=id_sucursal)
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(estado=True, sucursal__id=id_sucursal).order_by('-creado')
     elif estado == 'I':
-        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(estado=False, sucursal__id=id_sucursal)
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(estado=False, sucursal__id=id_sucursal).order_by('-creado')
     else:
-        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(sucursal__id=id_sucursal)
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(sucursal__id=id_sucursal).order_by('-creado')
 
     data = ShowProductoAdvanced_Serializer(producto, many=True, context={'request':request}).data
     return Response(data)
@@ -429,6 +435,66 @@ def get_productos_estado_by_sucursal_ultimos(request, estado, limite):
 
     data = ShowProductoAdvanced_Serializer(producto, many=True, context={'request':request}).data
     return Response(data)
+
+
+
+# obtener combos por sucursal ( estado ) solo combos o productos - clientes
+@swagger_auto_schema(method="GET",responses={200:ShowProductoAdvanced_Serializer},operation_id="Lista de todos los Productos ( combos ) para cliente",
+    operation_description="Devuelve una lista de todos los productos. En el campo 'is_combo' si el producto es un combo devuelve true caso contrario false."
+    "\n\n\tis_combo : true //es un combo\n\n\tis_combo : false //no es combo\n Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos los productos")
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def get_productos_estado(request, estado, tipo_producto):
+    if tipo_producto == 'C':
+        is_combo = True
+    elif tipo_producto == 'P':
+        is_combo = False
+    else:
+        raise NotFound('No se encontro la url')
+    
+    if estado == 'A':
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA,estado=True, is_combo=is_combo, combo_activo=True).order_by('-creado')
+    elif estado == 'I':
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA,estado=False, is_combo=is_combo, combo_activo=True).order_by('-creado')
+    elif estado == 'T':
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA, is_combo=is_combo, combo_activo=True).order_by('-creado')
+    else:
+        raise NotFound('No se encontro la url')
+
+    data = ShowProductoAdvanced_Serializer(producto, many=True, context={'request':request}).data
+    return Response(data)
+
+
+
+# obtener combos por sucursal ( estado ) productos y combos - clientes
+@swagger_auto_schema(method="GET",responses={200:ShowProductoAdvanced_Serializer},operation_id="Lista de todos los Productos mejor puntuados ( combos ) Ranking",
+    operation_description="Devuelve una lista de todos los productos. En el campo 'is_combo' si el producto es un combo devuelve true caso contrario false."
+    "\n\n\tis_combo : true //es un combo\n\n\tis_combo : false //no es combo\n Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos los productos")
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def get_productos_estado_ranking(request, tipo_producto):
+    if tipo_producto == 'C':
+        is_combo = True
+    elif tipo_producto == 'P':
+        is_combo = False
+    elif tipo_producto == 'T':
+        is_combo = None
+    else:
+        raise NotFound('No se encontro la url')
+
+    paginator = CursorPagination_Ranking()
+
+    if is_combo == None:
+        productos = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA,estado=True, combo_activo=True)
+    else:
+        productos = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA,estado=True, is_combo=is_combo, combo_activo=True)
+    
+    page = paginator.paginate_queryset(productos, request)
+    sr = ShowProductoAdvanced_Serializer(page, many=True, context={'request':request}).data
+    data = paginator.get_paginated_response(sr)
+    return data
+
+
 
 
 # obtener productos por sucursal ( estado ) - cliente
