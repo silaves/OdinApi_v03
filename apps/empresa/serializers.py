@@ -290,7 +290,7 @@ class ShowProductoMedio_Serializer(serializers.Serializer):
 #crear combo
 
 class CrearComboSerializer(serializers.ModelSerializer):
-    combo = serializers.RegexField('^(\d{1,8}[-]\d{1,2}[&]){0,}?$',max_length=10, required=False)
+    combo = serializers.RegexField('^(\d{1,8}[-]\d{1,2}[&]){0,}?$',max_length=255, required=False)
 
     class Meta:
         model = Producto
@@ -341,7 +341,7 @@ class CrearComboSerializer(serializers.ModelSerializer):
 
 # editar combo
 class EditarComboSerializer(serializers.ModelSerializer):
-    combo = serializers.RegexField('^(\d{1,8}[-]\d{1,2}[&]){0,}?$',max_length=10)
+    combo = serializers.RegexField('^(\d{1,8}[-]\d{1,2}[&]){0,}?$',max_length=255)
     nombre = serializers.CharField(required=False,max_length=50)
     precio = serializers.DecimalField(max_digits=7, decimal_places=1, required=False)
 
