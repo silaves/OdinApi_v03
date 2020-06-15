@@ -221,7 +221,7 @@ class PerfilSerializer(serializers.ModelSerializer):
             calificacion = Perfil.objects.get(usuario__id=usuario.id).calificacion
         except:
             calificacion = Decimal(0)
-        return str(calificacion.normalize())
+        return calificacion.normalize()
     
     def getDisponibilidad(self, usuario):
         try:
