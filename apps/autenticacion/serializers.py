@@ -1,3 +1,4 @@
+from decimal import Decimal
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
@@ -219,7 +220,7 @@ class PerfilSerializer(serializers.ModelSerializer):
         try:
             calificacion = Perfil.objects.get(usuario__id=usuario.id).calificacion
         except:
-            calificacion = 0
+            calificacion = Decimal(0)
         return str(calificacion.normalize())
     
     def getDisponibilidad(self, usuario):
