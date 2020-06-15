@@ -417,8 +417,8 @@ def get_productos_estado_combos_by_sucursal(request, id_sucursal, estado):
 # LISTAS DE PRODUCTOS PARA CLIENTE
 
 # obtener productos por sucursal ( estado ) los ultimos - clientes
-@swagger_auto_schema(method="GET",responses={200:ShowProductoAdvanced_Serializer},operation_id="Lista de ultimos Productos por Sucursal ( productos y combos ) ULTIMOS para cliente",
-    operation_description="Devuelve una lista de productos de acuerdo al estado de una sucursal. En el campo 'is_combo' si el producto es un combo devuelve true caso contrario false."
+@swagger_auto_schema(method="GET",responses={200:ShowProductoAdvanced_Serializer},operation_id="Lista de ultimos Productos ( productos y combos ) ULTIMOS para cliente",
+    operation_description="Devuelve una lista de los ultimos productos y combos adicionados. En el campo 'is_combo' si el producto es un combo devuelve true caso contrario false."
     "\n\n\tis_combo : true //es un combo\n\n\tis_combo : false //no es combo\n Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos los productos")
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
