@@ -385,9 +385,6 @@ class EditarComboSerializer(serializers.ModelSerializer):
         if not re.match("^[01]{7}$",value):
             raise serializers.ValidationError('El campo debe tener 7 caracteres y/o ser ceros o unos')
         return value
-    # def create(self, validated_data):
-    #     data = validated_data.pop('combo')
-    #     return Producto.objects.create(**validated_data)
 
 
 

@@ -439,7 +439,7 @@ def get_productos_estado_by_sucursal_ultimos(request, estado, limite):
 
 
 # obtener combos por sucursal ( estado ) solo combos o productos - clientes
-@swagger_auto_schema(method="GET",responses={200:ShowProductoAdvanced_Serializer},operation_id="Lista de todos los Productos ( combos ) para cliente",
+@swagger_auto_schema(method="GET",responses={200:ShowProductoAdvanced_Serializer},operation_id="Lista de todos los Productos ( combos 'C' o productos 'P') para cliente",
     operation_description="Devuelve una lista de todos los productos. En el campo 'is_combo' si el producto es un combo devuelve true caso contrario false."
     "\n\n\tis_combo : true //es un combo\n\n\tis_combo : false //no es combo\n Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos los productos")
 @api_view(['GET'])
@@ -509,11 +509,11 @@ def get_productos_estado_by_sucursal_cliente(request, id_sucursal, estado):
     estado = revisar_estado_producto(estado)
     
     if estado == 'A':
-        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(estado=True, combo_activo=True, sucursal__id=id_sucursal)
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(estado=True, combo_activo=True, sucursal__id=id_sucursal).order_by('-creado')
     elif estado == 'I':
-        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(estado=False, combo_activo=True, sucursal__id=id_sucursal)
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(estado=False, combo_activo=True, sucursal__id=id_sucursal).order_by('-creado')
     else:
-        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(combo_activo=True, sucursal__id=id_sucursal)
+        producto = Producto.objects.select_related('sucursal','sucursal__empresa').filter(combo_activo=True, sucursal__id=id_sucursal).order_by('-creado')
 
     data = ShowProductoAdvanced_Serializer(producto, many=True, context={'request':request}).data
     return Response(data)
@@ -540,13 +540,27 @@ def crear_combo(request):
     revisar_propietario_sucursal(usuario, sucursal)
     
     try:
-        obj.validated_data['combo']
         pr = obj.validated_data['combo']
+        pr_exists = True
+    except:
+        pr_exists = False
+    
+    # controlar dias activos
+    combo_activo = True
+    try:
+        dia = date.today().weekday()
+        if obj.validated_data['dias_activos'][dia] == '0':
+            combo_activo = False
+        else:
+            combo_activo = True
+    except:
+        pass
+
+    combo = obj.save(combo_activo=combo_activo, is_combo=True)
+    if pr_exists:
         productos = pr.split('&')
         productos.pop( len(productos) -1)
-        combo = obj.save()
-        combo.is_combo = True
-        combo.save()
+        # crear agregar productos al combo
         for x in productos:
             line = x.split('-')
             pr = int(line[0])
@@ -556,10 +570,7 @@ def crear_combo(request):
             productos.producto = Producto.objects.get(pk=pr)
             productos.cantidad = ct
             productos.save()
-    except:
-        combo = obj.save()
-        combo.is_combo = True
-        combo.save()
+
     return Response({'mensaje':'Se ha agregado el combo correctamente'})
 
 
@@ -580,12 +591,18 @@ def editar_combo(request, id_combo):
     obj.is_valid(raise_exception=True)
 
     revisar_propietario_sucursal(usuario, combo.sucursal)
+
+    
     try:
         pr = obj.validated_data['combo']
+        pr_exists = True
+    except:
+        pr_exists = False
+    
+    if pr_exists:
         productos = pr.split('&')
         productos.pop( len(productos) -1)
         obj.validated_data.pop('combo')
-        combo = obj.save()
         Combo.objects.filter(combo__id=combo.id).delete()
         for x in productos:
             line = x.split('-')
@@ -596,8 +613,17 @@ def editar_combo(request, id_combo):
             productos.producto = Producto.objects.get(pk=pr)
             productos.cantidad = ct
             productos.save()
+
+    combo_activo = combo.combo_activo
+    try:
+        dia = date.today().weekday()
+        if obj.validated_data['dias_activos'][dia] == '0':
+            combo_activo = False
+        else:
+            combo_activo = True
     except:
-        obj.save()
+        pass
+    combo = obj.save(combo_activo=combo_activo)
 
     return Response({'mensaje':'Se ha agregado el combo correctamente'})
 
