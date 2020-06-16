@@ -309,6 +309,27 @@ def get_articulos_number_pagination(request, estado):
 
 
 
+# listar articulos por sucursal
+@swagger_auto_schema(method="GET",responses={200:ResponseBasicProducto(many=True)},operation_id="Lista de Todos lo Articulos por Sucursal")
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_articulos_by_sucursal(request, estado, id_sucursal):
+    if not Sucursal.objects.filter(pk=id_sucursal, estado=True).exists():
+        raise NotFound('No se encontro la sucursal o esta inactiva')
+    if estado == 'A':
+        query = Producto.objects.filter(estado=True, sucursal__id=id_sucursal).order_by('-creado')
+    elif estado == 'I':
+        query = Producto.objects.filter(estado=False, sucursal__id=id_sucursal).order_by('-creado')
+    elif estado == 'T':
+        query = Producto.objects.filter(sucursal__id=id_sucursal).order_by('-creado')
+    else:
+        raise NotFound('No se encontro la url')
+    
+    sr = ShowBasicArticulo_Serializer(query, many=True).data
+    return Response(sr)
+
+
+
 # ARTICULOS POR CATEGORIA
 
 # listar articulos por categoria

@@ -154,7 +154,7 @@ class ShowBasicArticulo_Serializer(serializers.Serializer):
         return {
             'id':instance.id,
             'nombre':instance.nombre,
-            'precio':instance.precio,
+            'precio':str(instance.precio),
             'foto':instance.foto.url if instance.foto else None,
             'creado':make_naive(instance.creado)
         }
@@ -203,7 +203,7 @@ class ShowAdvancedArticulo_Serializer(serializers.Serializer):
             'id':instance.id,
             'nombre':instance.nombre,
             'descripcion':instance.descripcion,
-            'precio':instance.precio,
+            'precio':str(instance.precio),
             'estado':instance.estado,
             'foto':instance.foto.url if instance.foto else None,
             'creado':make_naive(instance.creado),

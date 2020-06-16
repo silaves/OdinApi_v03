@@ -22,6 +22,7 @@ urlpatterns = [
     path('ecommerce/articulo/<str:estado>/todos/', views.get_articulos, name='Listar todos los articulos'),
     path('ecommerce/articulo/<str:estado>/todos/cursor/', views.get_articulos_cursor_pagination, name='Listar todos los articulos - Cursor'),
     path('ecommerce/articulo/<str:estado>/todos/number/', views.get_articulos_number_pagination, name='Listar todos los articulos - Number'),
+    path('ecommerce/sucursal/<int:id_sucursal>/articulo/<str:estado>/', views.get_articulos_by_sucursal, name='Listar todos los Articulos por Sucursal'),
 
     # por categoria
     path('ecommerce/articulo/<str:estado>/categoria/<int:id_categoria>/', views.get_articulos_categoria, name='Listar de Articulos por Categoria'),
