@@ -141,19 +141,46 @@ class ProductoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Producto
-        fields = ['id','nombre','descripcion','precio','sucursal','foto']
+        fields = ['id','nombre','descripcion','precio','sucursal','foto','categoria']
     
+    def validate_categoria(self, value):
+        if value.padre is None:
+            raise serializers.ValidationError('La categoria debe tener un padre')
+        if value.estado is False:
+            raise serializers.ValidationError('La categoria esta inactiva')
+        if not validar_categoria(value, settings._COMIDA_):
+            raise serializers.ValidationError('La categoria no pertenece a comida')
+        return value
+        
     # def create(self, validate_data):
     #     return Producto.objects.create(**validate_data)
 
-
+def validar_categoria(categoria, tipo):
+    c = categoria.padre
+    es = False
+    while c is not None:
+        if c.nombre == tipo:
+            es = True
+            break
+        else:
+            c = c.padre
+    return es
 
 class ProductoEditarSerializer(serializers.ModelSerializer):
     foto = serializers.ImageField(max_length=None, use_url=True)
 
     class Meta:
         model = Producto
-        fields = ['nombre','descripcion','precio','estado','foto']
+        fields = ['nombre','descripcion','precio','estado','foto','categoria']
+    
+    def validate_categoria(self, value):
+        if value.padre is None:
+            raise serializers.ValidationError('La categoria debe tener un padre')
+        if value.estado is False:
+            raise serializers.ValidationError('La categoria esta inactiva')
+        if not validar_categoria(value, settings._COMIDA_):
+            raise serializers.ValidationError('La categoria no pertenece a comida')
+        return value
 
 
 
@@ -172,6 +199,14 @@ class ShowProductoBasicHijo_Serializer(serializers.Serializer): # revisar
             'cantidad':Combo.objects.filter(combo__id=self.context.get('padre'),producto__id=instance.id).values('cantidad')[0]['cantidad']
         }
 
+class ShowCategoriaProducto_Serializer(serializers.Serializer):
+    def to_representation(self, instance):
+        return {
+            'id':instance.id,
+            'nombre':instance.nombre,
+            'codigo':instance.codigo
+        }
+
 class ShowProductoBasic_Serializer(serializers.Serializer): # revisar
     def to_representation(self, instance):
         return {
@@ -188,6 +223,7 @@ class ShowProductoBasic_Serializer(serializers.Serializer): # revisar
             'cant_calificacion':instance.cant_calificacion,
             'is_calificado':self.context.get('is_calificado'),
             'dias_activos':instance.dias_activos,
+            'categoria':ShowCategoriaProducto_Serializer(instance.categoria).data,
             'combo':ShowProductoBasicHijo_Serializer( Producto.objects.select_related('sucursal','sucursal__empresa').filter(id__in=Combo.objects.filter(combo_id=instance.id).values('producto')),
             many=True,context={'request':self.context.get('request'),'padre':instance.id} ).data if instance.is_combo is True else False
         }
@@ -248,6 +284,7 @@ class ShowProductoAdvanced_Serializer(serializers.Serializer): # revisar
                 #     'estado':instance.sucursal.ciudad.estado
                 # }
             },
+            'categoria':ShowCategoriaProducto_Serializer(instance.categoria).data,
             'foto':instance.foto.url if instance.foto else None,
             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
             'is_combo':instance.is_combo,
@@ -294,7 +331,7 @@ class CrearComboSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Producto
-        fields = ['nombre','descripcion','precio','sucursal','foto','combo','dias_activos']
+        fields = ['nombre','descripcion','precio','sucursal','foto','combo','dias_activos','categoria']
         
     def validate(self, data):
         index = 0
@@ -329,6 +366,15 @@ class CrearComboSerializer(serializers.ModelSerializer):
         if not re.match("^[01]{7}$",value):
             raise serializers.ValidationError('El campo debe tener 7 caracteres y/o ser ceros o unos')
         return value
+    
+    def validate_categoria(self, value):
+        if value.padre is None:
+            raise serializers.ValidationError('La categoria debe tener un padre')
+        if value.estado is False:
+            raise serializers.ValidationError('La categoria esta inactiva')
+        if not validar_categoria(value, settings._COMIDA_):
+            raise serializers.ValidationError('La categoria no pertenece a comida')
+        return value
 
     def create(self, validated_data):
         try:
@@ -347,7 +393,7 @@ class EditarComboSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Producto
-        fields = ['nombre','descripcion','precio','foto','combo','dias_activos','estado']
+        fields = ['nombre','descripcion','precio','foto','combo','dias_activos','estado','categoria']
     
     def validate(self, data):
         index = 0
@@ -384,6 +430,15 @@ class EditarComboSerializer(serializers.ModelSerializer):
     def validate_dias_activos(self, value):
         if not re.match("^[01]{7}$",value):
             raise serializers.ValidationError('El campo debe tener 7 caracteres y/o ser ceros o unos')
+        return value
+    
+    def validate_categoria(self, value):
+        if value.padre is None:
+            raise serializers.ValidationError('La categoria debe tener un padre')
+        if value.estado is False:
+            raise serializers.ValidationError('La categoria esta inactiva')
+        if not validar_categoria(value, settings._COMIDA_):
+            raise serializers.ValidationError('La categoria no pertenece a comida')
         return value
 
 

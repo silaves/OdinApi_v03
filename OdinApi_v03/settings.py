@@ -194,9 +194,13 @@ GRUPO_ADMINISTRADOR = 'administrador'
 GRUPO_REPARTIDOR = 'repartidor'
 GRUPO_TAXISTA = 'taxista'
 
+# categoria empresas
 COMIDA = 'comida'
 ECOMMERCE = 'ecommerce'
 
+# categoria productos
+_COMIDA_ = '_comida_'
+_ECOMMERCE_ = '_ecommerce_'
 MAXIMO_HORARIOS = 2
 
 

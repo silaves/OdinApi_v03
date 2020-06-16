@@ -520,6 +520,53 @@ def get_productos_estado_by_sucursal_cliente(request, id_sucursal, estado):
 
 
 
+def solve_categoria_lista(id_padre,estado, _ids):
+    if estado == 'A':
+        qs = CategoriaProducto.objects.filter(padre__id=id_padre,estado=True)
+    elif estado == 'I':
+        qs = CategoriaProducto.objects.filter(padre__id=id_padre,estado=False)
+    else:
+        qs = CategoriaProducto.objects.filter(padre__id=id_padre)
+    
+    if qs.count() == 0:
+        return _ids
+    else:
+        for q in qs:
+            _ids.append(q)
+            solve_categoria_lista(q.id, estado, _ids)
+        return solve_categoria_lista(0,estado,_ids)
+
+# listar productos por categoria
+@swagger_auto_schema(method="GET",responses={200:ShowProductoAdvanced_Serializer(many=True)},operation_id="Lista de Productos por categoria", 
+    operation_description="Devuelve una lista de productos de acuerdo a una categoria, si esta categoria tiene hijos tambien se listara los productos de las categorias hijos.")
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_productos_categoria(request, estado, id_categoria):
+    categoria = get_or_error_categoria(id_categoria)
+    if not categoria.estado:
+        raise PermissionDenied('La categoria esta inactiva')
+    
+    categorias_hijo = solve_categoria_lista(categoria.id,'A',[categoria])
+
+    if estado == 'A':
+        productos = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.COMIDA, categoria__in=categorias_hijo, estado=True, combo_activo=True).order_by('-creado')
+    elif estado == 'I':
+        productos = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.COMIDA, categoria__in=categorias_hijo, estado=False, combo_activo=True).order_by('-creado')
+    elif estado == 'T':
+        productos = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.COMIDA, categoria__in=categorias_hijo, combo_activo=True).order_by('-creado')
+    else:
+        raise NotFound('No se encontro la url')
+
+    paginator = CursorPagination_Ranking()
+    page = paginator.paginate_queryset(productos, request)
+    sr = ShowProductoAdvanced_Serializer(page, many=True, context={'request':request}).data
+    data = paginator.get_paginated_response(sr)
+
+    return data
+
+
+
+
 
 
 # COMBO
@@ -1985,3 +2032,10 @@ def validar_repartidor_activo(usuario):
     if Horario.objects.filter(usuario__id=usuario.id,entrada__lte=ini,salida__gte=ini,estado=True).exists() is False:
         raise PermissionDenied('El usuario no esta en horario de trabajo')
     return True
+
+def get_or_error_categoria(id_categoria):
+    try:
+        categoria = CategoriaProducto.objects.get(pk=id_categoria)
+        return categoria
+    except:
+        raise NotFound('No existe la categoria')

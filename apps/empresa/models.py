@@ -104,7 +104,7 @@ class Producto(models.Model):
     combo_activo = models.BooleanField(default=True)
     dias_activos = models.CharField(max_length=7, default='1111111', blank=False)
     atributos = JSONField(blank=True, null=True)
-    categoria = models.ForeignKey(CategoriaProducto,blank=True,null=True,on_delete=models.PROTECT)
+    categoria = models.ForeignKey(CategoriaProducto, on_delete=models.PROTECT)
     creado = models.DateTimeField(auto_now_add=True)
     cant_calificacion = models.PositiveIntegerField(default=0)
     calificacion = models.DecimalField(default=0,max_digits=10, decimal_places=9)

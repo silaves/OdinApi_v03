@@ -5,6 +5,9 @@ urlpatterns = [
     # CATEGORIA
     path('ecommerce/categoria/<str:estado>/', views.get_categorias_productos, name='Lista de Categorias Productos Lista'),
     path('ecommerce/categoria/<str:estado>/nivel/', views.get_categorias_productos_niveles, name='Lista de Categorias Productos por Niveles'),
+    path('ecommerce/categoria/<str:estado>/tipo/<str:tipo>/', views.get_categorias_principales, name='Lista de Categorias Productos COMIDA O ECOMMERCE lista'),
+    path('ecommerce/categoria/<str:estado>/tipo/<str:tipo>/nivel/', views.get_categorias_principales_niveles, name='Lista de Categorias Productos COMIDA O ECOMMERCE niveles'),
+
     path('ecommerce/categoria/<int:id_categoria>/<str:estado>/hijo/', views.get_categorias_productos_hijo, name='Lista de Categorias Productos de una Categoria Padre - Lista'),
     path('ecommerce/categoria/<int:id_categoria>/<str:estado>/hijo_nivel/', views.get_categorias_productos_hijo_niveles, name='Lista de Categorias Productos de una Categoria Padre - Por Niveles'),
 

@@ -1,7 +1,8 @@
+from operator import attrgetter
+
 from django.shortcuts import render
 from django.conf import settings
 from drf_yasg.utils import swagger_auto_schema
-
 from rest_framework.exceptions import NotFound,PermissionDenied
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -66,7 +67,7 @@ def solve_categoria_lista(id_padre,estado, _ids):
         return _ids
     else:
         for q in qs:
-            _ids.append(q.id)
+            _ids.append(q)
             solve_categoria_lista(q.id, estado, _ids)
         return solve_categoria_lista(0,estado,_ids)
 
@@ -77,8 +78,9 @@ def solve_categoria_lista(id_padre,estado, _ids):
 def get_categorias_productos_hijo(request, id_categoria, estado):
     revisar_estado_AIT(estado)
     _ids = []
-    query = CategoriaProducto.objects.filter(pk__in=_ids)
-    data = ShowCategoriaProducto_Serializer(query, many=True).data
+    x = solve_categoria_lista(id_categoria, estado, _ids)
+    # query = CategoriaProducto.objects.filter(pk__in=_ids).order_by('-id')
+    data = ShowCategoriaProducto_Serializer(sorted(x, reverse=False, key=attrgetter('id')), many=True).data
     return Response(data)
 
 
@@ -97,6 +99,56 @@ def get_categorias_productos_hijo_niveles(request, id_categoria, estado):
         query = CategoriaProducto.objects.filter(padre__id=id_categoria)
     data = ShowCategoriaProductoNivel_Serializer(query, many=True, context={'estado':estado}).data
     return Response(data)
+
+
+def obtener_categoria_principal(tipo):
+    if tipo == 'C':
+        try:
+            cate = CategoriaProducto.objects.get(nombre=settings._COMIDA_)
+        except:
+            raise NotFound('No se encontro la categoria')
+        return cate.id
+    elif tipo == 'E':
+        try:
+            cate = CategoriaProducto.objects.get(nombre=settings._ECOMMERCE_)
+        except:
+            raise NotFound('No se encontro la categoria')
+        return cate.id
+    else:
+        raise NotFound('No se encontro el tipo de categoria')
+
+
+# listar categorias productos - por COMIDA o ECOMMERCE lista
+@swagger_auto_schema(method="GET",responses={200:ResponseCategoriaProducto(many=True)},operation_id="Lista de Categorias de COMIDA o ECOMMERCE lista")
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_categorias_principales(request, estado, tipo):
+    _ids = []
+    revisar_estado_AIT(estado)
+    x = solve_categoria_lista( obtener_categoria_principal(tipo), estado, _ids)
+    data = ShowCategoriaProducto_Serializer(sorted(x, reverse=False,key=attrgetter('id')), many=True).data
+    return Response(data)
+
+
+# listar categorias productos - por COMIDA o ECOMMERCE niveles
+@swagger_auto_schema(method="GET",responses={200:ResponseCategoriaProductoNivel(many=True)},operation_id="Lista de Categorias de COMIDA o ECOMMERCE niveles")
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_categorias_principales_niveles(request, estado, tipo):
+    tp = obtener_categoria_principal(tipo)
+    if estado == 'A':
+        query = CategoriaProducto.objects.filter(padre__id=tp,estado=True)
+    elif estado == 'I':
+        query = CategoriaProducto.objects.filter(padre__id=tp,estado=False)
+    elif estado == 'T':
+        query = CategoriaProducto.objects.filter(padre__id=tp)
+    else:
+        raise NotFound('No se encontro el estado')
+    data = ShowCategoriaProductoNivel_Serializer(query, many=True, context={'estado':estado}).data
+    return Response(data)
+
+
+
 
 
 # SUCURSALES
@@ -269,14 +321,14 @@ def get_articulos_categoria(request, estado, id_categoria):
     if not categoria.estado:
         raise PermissionDenied('La categoria esta inactiva')
     
-    categorias_hijo = solve_categoria_lista(categoria.id,'A',[id_categoria])
+    categorias_hijo = solve_categoria_lista(categoria.id,'A',[categoria])
 
     if estado == 'A':
-        query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, categoria__id__in=categorias_hijo, estado=True).order_by('-creado')
+        query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, categoria__in=categorias_hijo, estado=True).order_by('-creado')
     elif estado == 'I':
-        query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, categoria__id__in=categorias_hijo, estado=False).order_by('-creado')
+        query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, categoria__in=categorias_hijo, estado=False).order_by('-creado')
     elif estado == 'T':
-        query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, categoria__id__in=categorias_hijo).order_by('-creado')
+        query = Producto.objects.filter(sucursal__empresa__categoria__nombre=settings.ECOMMERCE, categoria__in=categorias_hijo).order_by('-creado')
     else:
         raise NotFound('No se encontro la url')
     

@@ -90,6 +90,16 @@ class ShowSucursal_Serializer(serializers.Serializer):
 
 
 # ARTICULOS
+def validar_categoria(categoria, tipo):
+    c = categoria.padre
+    es = False
+    while c is not None:
+        if c.nombre == tipo:
+            es = True
+            break
+        else:
+            c = c.padre
+    return es
 
 
 class CrearArticulo_Serializer(serializers.ModelSerializer):
@@ -109,6 +119,15 @@ class CrearArticulo_Serializer(serializers.ModelSerializer):
             if f.size > limit:
                 raise serializers.ValidationError('La imagen '+str(f)+' no debe exceder los '+str(MiB)+'Mb')
         return obj
+    
+    def validate_categoria(self, value):
+        if value.padre is None:
+            raise serializers.ValidationError('La categoria debe tener un padre')
+        if value.estado is False:
+            raise serializers.ValidationError('La categoria esta inactiva')
+        if not validar_categoria(value, settings._ECOMMERCE_):
+            raise serializers.ValidationError('La categoria no pertenece a ecommerce')
+        return value
 
 
 
@@ -117,7 +136,16 @@ class EditarArticulo_Serializer(serializers.ModelSerializer):
 
     class Meta:
         model = Producto
-        fields = ['nombre','descripcion','precio','atributos','categoria']
+        fields = ['nombre','descripcion','precio','atributos','categoria','foto']
+    
+    def validate_categoria(self, value):
+        if value.padre is None:
+            raise serializers.ValidationError('La categoria debe tener un padre')
+        if value.estado is False:
+            raise serializers.ValidationError('La categoria esta inactiva')
+        if not validar_categoria(value, settings._ECOMMERCE_):
+            raise serializers.ValidationError('La categoria no pertenece a ecommerce')
+        return value
 
 
 
