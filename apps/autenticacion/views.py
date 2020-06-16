@@ -528,25 +528,25 @@ def lista_horarios(request):
     return Response(obj)
 
 
-@api_view(['GET'])
-@permission_classes([AllowAny,])
-def crear_empresario(request):
-    obj = CrearEmpresario_Serializer(data=request.data)
-    obj.is_valid(raise_exception=True)
-    try:
-        telefono = obj.validated_data['telefono']
-    except:
-        telefono = 0
-    usuario = obj.save()
-    grupo = Group.objects.get(name=settings.GRUPO_EMPRESARIO)
-    usuario.groups.add(grupo)
-    usuario.save()
-    perfil = Perfil()
+# @api_view(['GET'])
+# @permission_classes([AllowAny,])
+# def crear_empresario(request):
+#     obj = CrearEmpresario_Serializer(data=request.data)
+#     obj.is_valid(raise_exception=True)
+#     try:
+#         telefono = obj.validated_data['telefono']
+#     except:
+#         telefono = 0
+#     usuario = obj.save()
+#     grupo = Group.objects.get(name=settings.GRUPO_EMPRESARIO)
+#     usuario.groups.add(grupo)
+#     usuario.save()
+#     perfil = Perfil()
     
-    perfil.telefono = telefono
-    perfil.usuario = usuario
-    perfil.save()
-    return Response({'mensaje':'Se ha creado el empresario correctamente'})
+#     perfil.telefono = telefono
+#     perfil.usuario = usuario
+#     perfil.save()
+#     return Response({'mensaje':'Se ha creado el empresario correctamente'})
 
 
 
