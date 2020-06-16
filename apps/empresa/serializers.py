@@ -82,7 +82,7 @@ class SucursalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sucursal
-        fields = ['id','nombre','disponible','estado','telefono','ubicacion','direccion','foto','empresa','hora_inicio','hora_fin','ciudad']
+        fields = ['id','nombre','disponible','estado','telefono','ubicacion','direccion','foto','empresa','hora_inicio','hora_fin','ciudad','calificacion']
 
 class ShowSucursal_Serializer(serializers.Serializer):
 
