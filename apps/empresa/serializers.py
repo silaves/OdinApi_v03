@@ -121,6 +121,11 @@ class ShowSucursal_Serializer(serializers.Serializer):
                 'nombre':instance.ciudad.nombre,
                 'estado':instance.ciudad.estado,
                 'comision_porcentaje':str(instance.ciudad.comision_porcentaje)
+            },
+            'categoria':{
+                'id':instance.categoria.id,
+                'nombre':instance.categoria.nombre,
+                'codigo':instance.categoria.codigo
             }
         }
 
@@ -469,6 +474,7 @@ class PedidoProductos(serializers.ModelSerializer):
 
 class CrearPedidoSerializer(serializers.ModelSerializer):
     productos = PedidoProductos(required=True,many=True)
+    # pin = serializers.CharField(max_length=settings.PIN_LENGTH, required=True)
 
     class Meta:
         model = Pedido
@@ -510,6 +516,7 @@ class CrearPedidoSerializer(serializers.ModelSerializer):
         if len(value) < 1:
             raise serializers.ValidationError('El pedido debe tener al menos 1 producto.')
         return value
+
 
 
 

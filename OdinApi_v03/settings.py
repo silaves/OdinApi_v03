@@ -206,6 +206,9 @@ _COMIDA_ = '_comida_'
 _ECOMMERCE_ = '_ecommerce_'
 MAXIMO_HORARIOS = 2
 
+# PIN
+PIN_LENGTH = 5
+
 
 
 
