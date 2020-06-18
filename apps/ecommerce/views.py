@@ -222,7 +222,7 @@ def getAll_Sucursales_by_categoria(request, estado, id_ciudad, id_categoria):
 
 
 # crear articulo
-@swagger_auto_schema(method="POST",responses={200:'Se ha creado el articulo'},operation_id="Crear Articulo")
+@swagger_auto_schema(method="POST",request_body=CrearArticulo_Serializer,responses={200:'Se ha creado el articulo'},operation_id="Crear Articulo")
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def crear_articulo(request):
@@ -244,7 +244,7 @@ def crear_articulo(request):
 
 
 # editar articulo
-@swagger_auto_schema(method="POST",responses={200:'Se ha modificado el articulo'},operation_id="Editar Articulo")
+@swagger_auto_schema(method="POST",request_body=EditarArticulo_Serializer,responses={200:'Se ha modificado el articulo'},operation_id="Editar Articulo")
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def editar_articulo(request, id_producto):
