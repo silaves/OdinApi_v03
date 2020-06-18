@@ -10,9 +10,11 @@ urlpatterns = [
 
     path('ecommerce/categoria/<int:id_categoria>/<str:estado>/hijo/', views.get_categorias_productos_hijo, name='Lista de Categorias Productos de una Categoria Padre - Lista'),
     path('ecommerce/categoria/<int:id_categoria>/<str:estado>/hijo_nivel/', views.get_categorias_productos_hijo_niveles, name='Lista de Categorias Productos de una Categoria Padre - Por Niveles'),
+    path('ecommerce/categoria/<str:estado>/tipo/<str:tipo>/sucursal/', views.get_categorias_sucursales, name='Lista de Categorias Productos para Sucursales - lista'),
 
     # SUCURSAL
     path('ecommerce/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/', views.getAll_Sucursales_eco, name='Lista de todas las Sucursales - Ecommerce'),
+    path('ecommerce/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/categoria/<int:id_categoria>/', views.getAll_Sucursales_by_categoria, name='Lista de todas las Sucursales - Ecommerce por Categoria'),
 
     # ARTICULO
 

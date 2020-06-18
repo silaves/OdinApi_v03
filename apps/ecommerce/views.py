@@ -149,6 +149,23 @@ def get_categorias_principales_niveles(request, estado, tipo):
 
 
 
+# listar categorias de nivel 2 o que sean los primeros hijos de _comida_ o _ecommerce_, estos son para las sucursales
+@swagger_auto_schema(method="GET",responses={200:ResponseCategoriaProductoNivel(many=True)},operation_id="Lista de Categorias de COMIDA o ECOMMERCE de nivel 2")
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_categorias_sucursales(request, estado, tipo):
+    tp = obtener_categoria_principal(tipo)
+    if estado == 'A':
+        query = CategoriaProducto.objects.filter(padre__id=tp,estado=True)
+    elif estado == 'I':
+        query = CategoriaProducto.objects.filter(padre__id=tp,estado=False)
+    elif estado == 'T':
+        query = CategoriaProducto.objects.filter(padre__id=tp)
+    else:
+        raise NotFound('No se encontro el estado')
+    data = ShowCategoriaProducto_Serializer(query, many=True).data
+    return Response(data)
+
 
 
 # SUCURSALES
@@ -171,6 +188,30 @@ def getAll_Sucursales_eco(request, estado, id_ciudad):
     
     data = ShowSucursal_Serializer(sucursales, many=True).data
     return Response(data)
+
+
+
+# lista de todas las sucursales ecommerce por categorias
+@swagger_auto_schema(method="GET",responses={200:ShowSucursal_Serializer(many=True)},operation_id="Lista de Todas las Sucursales E-commerce por categoria",
+    operation_description="Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos las sucursales")
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def getAll_Sucursales_by_categoria(request, estado, id_ciudad, id_categoria):
+    ciudad = revisar_ciudad(id_ciudad)
+    if not CategoriaProducto.objects.filter(pk=id_categoria, estado=True).exists():
+        raise NotFound('No se encontro la categoria o esta inactiva')
+    if estado == 'A':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.ECOMMERCE,ciudad__id=id_ciudad, categoria__id=id_categoria, estado=True)
+    elif estado == 'I':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.ECOMMERCE,ciudad__id=id_ciudad, categoria__id=id_categoria,estado=False)
+    elif estado == 'T':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.ECOMMERCE,ciudad__id=id_ciudad, categoria__id=id_categoria)
+    else:
+        raise NotFound('No se encontro el estado')
+    
+    data = ShowSucursal_Serializer(sucursales, many=True).data
+    return Response(data)
+
 
 
 
