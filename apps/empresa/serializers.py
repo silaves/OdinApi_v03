@@ -11,7 +11,7 @@ from rest_framework import serializers
 
 from apps.autenticacion.models import Usuario, Ciudad, Horario
 from apps.autenticacion.serializers import PerfilSerializer, VerCiudad_Serializer
-from .models import Empresa, Sucursal, Combo, Producto, CategoriaEmpresa, Pedido, PedidoProducto
+from .models import Empresa, Sucursal, Combo, Producto, CategoriaEmpresa, Pedido, PedidoProducto,CategoriaProducto
 
 
 class CategoriaEmpresaSerializer(serializers.ModelSerializer):
@@ -67,22 +67,27 @@ class CrearSucursal_Serializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sucursal
-        fields = ['id','nombre','disponible','estado','telefono','ubicacion','direccion','foto','empresa','hora_inicio','hora_fin','ciudad']   
+        fields = ['id','nombre','disponible','estado','telefono','ubicacion','direccion','foto','empresa','hora_inicio','hora_fin','ciudad','categoria']   
 
 
 class SucursalEditarSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sucursal
-        fields = ['nombre','telefono','ubicacion','direccion','foto','hora_inicio','hora_fin','estado','ciudad']
+        fields = ['nombre','telefono','ubicacion','direccion','foto','hora_inicio','hora_fin','estado','ciudad','categoria']
 
+class VerCategoria_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = CategoriaProducto
+        fields = ['id','nombre','codigo','estado']
 
 class SucursalSerializer(serializers.ModelSerializer):
     empresa = EmpresaSerializer()
     ciudad = VerCiudad_Serializer()
+    categoria = VerCategoria_Serializer()
 
     class Meta:
         model = Sucursal
-        fields = ['id','nombre','disponible','estado','telefono','ubicacion','direccion','foto','empresa','hora_inicio','hora_fin','ciudad','calificacion']
+        fields = ['id','nombre','disponible','estado','telefono','ubicacion','direccion','foto','empresa','hora_inicio','hora_fin','ciudad','calificacion','categoria']
 
 class ShowSucursal_Serializer(serializers.Serializer):
 

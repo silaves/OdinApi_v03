@@ -208,8 +208,29 @@ def getAll_Sucursales_max_calificacion(request, estado, id_ciudad):
     return Response(data)
 
 
+# lista de las sucursales por categoria
+@swagger_auto_schema(method="GET",responses={200:SucursalSerializer(many=True)},operation_id="Lista de las Sucursales por ciudad y categoria",
+    operation_description="Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos las sucursales")
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def getAll_Sucursales_by_categoria(request, estado, id_ciudad, id_categoria):
+    ciudad = revisar_ciudad(id_ciudad)
+    if not CategoriaProducto.objects.filter(pk=id_categoria, estado=True).exists():
+        raise NotFound('No se encontro la categoria o no esta disponible')
+    if estado == 'A':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad, categoria__id=id_categoria, estado=True).order_by('-calificacion')
+    elif estado == 'I':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad, categoria__id=id_categoria, estado=False).order_by('-calificacion')
+    elif estado == 'T':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad, categoria__id=id_categoria).order_by('-calificacion')
+    else:
+        raise NotFound('No se encontro la url')
+    data = ShowSucursal_Serializer(sucursales, many=True).data
+    return Response(data)
 
-# lista de todas las sucursales
+
+
+# lista de todas las sucursales por ciudad
 @swagger_auto_schema(method="GET",responses={200:SucursalSerializer(many=True)},operation_id="Lista de Todas las Sucursales del Sistema por ciudad",
     operation_description="Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos las sucursales")
 @api_view(['GET'])

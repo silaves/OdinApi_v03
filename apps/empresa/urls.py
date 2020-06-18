@@ -15,11 +15,11 @@ urlpatterns = [
     # SUCURSAL
     path('empresa/sucursal/crear/', views.crearSucursal, name='Crear Sucursal'),
     path('empresa/sucursal/<int:id_sucursal>/editar/', views.editar_sucursal, name='Modificar Sucursal'),
-    path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/', views.getAll_Sucursales, name='Lista todas Sucursales'),
+    path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/', views.getAll_Sucursales, name='Lista todas Sucursales por ciudad'),
+    path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/categoria/<int:id_categoria>/', views.getAll_Sucursales_by_categoria, name='Lista todas Sucursales por ciudad y categoria'),
+    path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/todo/', views.get_sucurales_sistema, name='Lista todas Sucursales del sistema comida e ecommerce'),
 
-    path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/', views.getAll_Sucursales, name='Lista todas Sucursales'),
-
-    path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/max/', views.getAll_Sucursales_max_calificacion, name='Lista todas Sucursales del Sistema'),
+    path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/max/', views.getAll_Sucursales_max_calificacion, name='Lista todas Sucursales del Sistema por Calificacion'),
     path('empresa/<int:id_empresa>/sucursal/<str:estado>/lista/', views.getSucursales, name='Lista de Sucursales por Empresa'),
     path('empresa/sucursal/<int:id_sucursal>/', views.getSucursal, name='Obtener Sucursal'),
     path('empresa/sucursal/<int:id_sucursal>/disponible/', views.cambiar_diponible_sucursal, name='Cambiar Disponibilidad Sucursal'),

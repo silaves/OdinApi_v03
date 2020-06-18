@@ -37,6 +37,22 @@ class Empresa(models.Model):
         return self.nombre
 
 
+
+class CategoriaProducto(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    codigo = models.CharField(max_length=20, unique=True)
+    estado = models.BooleanField(default=True)
+    padre = models.ForeignKey('self',blank=True,null=True,on_delete=models.PROTECT)
+
+    class Meta:
+        db_table = 'CATEGORIA_ARTICULO'
+        verbose_name = _('categoria producto')
+        verbose_name_plural = _('7. Categorias de un Producto')
+    
+    def __str__(self):
+        return self.codigo +' '+ self.nombre
+
+
 class Sucursal(models.Model):
     nombre = models.CharField(_('Zona'),max_length=20)
     telefono = models.IntegerField()
@@ -52,6 +68,7 @@ class Sucursal(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.PROTECT)
     ciudad = models.ForeignKey(Ciudad,blank=True,null=True, on_delete=models.PROTECT)
     # encargado = models.ForeignKey(Usuario,blank=True,null=True, on_delete=models.PROTECT)
+    categoria = models.ForeignKey(CategoriaProducto, on_delete=models.PROTECT)
     cant_calificacion = models.PositiveIntegerField(default=0)
     calificacion = models.DecimalField(_('Calificacion'),default=0,max_digits=10, decimal_places=9)
 
@@ -78,19 +95,6 @@ class FotoSucursal(models.Model):
         return self.id
 
 
-class CategoriaProducto(models.Model):
-    nombre = models.CharField(max_length=100, unique=True)
-    codigo = models.CharField(max_length=20, unique=True)
-    estado = models.BooleanField(default=True)
-    padre = models.ForeignKey('self',blank=True,null=True,on_delete=models.PROTECT)
-
-    class Meta:
-        db_table = 'CATEGORIA_ARTICULO'
-        verbose_name = _('categoria producto')
-        verbose_name_plural = _('7. Categorias de un Producto')
-    
-    def __str__(self):
-        return self.codigo +' '+ self.nombre
 
 
 class Producto(models.Model):
