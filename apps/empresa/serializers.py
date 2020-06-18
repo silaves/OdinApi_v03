@@ -158,8 +158,8 @@ class ProductoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('La categoria debe tener un padre')
         if value.estado is False:
             raise serializers.ValidationError('La categoria esta inactiva')
-        if not validar_categoria(value, settings._COMIDA_):
-            raise serializers.ValidationError('La categoria no pertenece a comida')
+        # if not validar_categoria(value, settings._COMIDA_):
+        #     raise serializers.ValidationError('La categoria no pertenece a comida')
         return value
         
     # def create(self, validate_data):
@@ -188,8 +188,8 @@ class ProductoEditarSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('La categoria debe tener un padre')
         if value.estado is False:
             raise serializers.ValidationError('La categoria esta inactiva')
-        if not validar_categoria(value, settings._COMIDA_):
-            raise serializers.ValidationError('La categoria no pertenece a comida')
+        # if not validar_categoria(value, settings._COMIDA_):
+        #     raise serializers.ValidationError('La categoria no pertenece a comida')
         return value
 
 
