@@ -551,7 +551,7 @@ def obtener_pin(request):
         return Response({'detail':'Hubo un problema al enviar el SMS'},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     cache.set(telf, pin, 5*60)
-    return Response({'mensaje':pin})
+    return Response({'mensaje':'Se ha enviado el PIN'})
 
 
 @api_view(['POST'])

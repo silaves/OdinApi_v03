@@ -34,10 +34,10 @@ def send_pin(message, number):
     _number_from = _get_first_number()
     if _number_from is None:
         return False
-    # message = cliente.messages.create(
-    #     body = message,
-    #     from_ = _number_from,
-    #     to = number
-    # )
+    message = cliente.messages.create(
+        body = message,
+        from_ = _number_from,
+        to = number
+    )
     # print(message.sid)
     return True
