@@ -269,9 +269,10 @@ def cambiar_contrasena(request):
 # PERFILES
 
 # Ver Perfil
+# @permission_classes([IsAuthenticated,])
 @swagger_auto_schema(method="GET",responses={200:PerfilSerializer},operation_id="Ver Perfil Usuario by Token")
 @api_view(['GET'])
-@permission_classes([IsAuthenticated,])
+@authentication_classes([JWTNewCliente,])
 def getPerfil(request):
     try:
         usuario = get_user_by_token(request)
