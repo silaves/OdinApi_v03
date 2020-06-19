@@ -25,7 +25,7 @@ from rest_framework import permissions, exceptions
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.decorators import api_view, permission_classes, renderer_classes, parser_classes, action
+from rest_framework.decorators import api_view, permission_classes, renderer_classes, parser_classes, action,authentication_classes
 
 
 from apps.autenticacion.views import permission_required
@@ -37,7 +37,7 @@ from apps.autenticacion.permissions import IsCliente
 from .models import *
 from .serializers import *
 from .pagination import CursorPagination, LimitOffsetPagination, CursorPagination_Ranking
-
+from apps.autenticacion.backends import JWTNewCliente
 
 
 # CIUDAD
@@ -45,7 +45,7 @@ from .pagination import CursorPagination, LimitOffsetPagination, CursorPaginatio
 # lista de ciudades
 @swagger_auto_schema(method="GET",responses={200:VerCiudad_Serializer(many=True)},operation_id="Lista Ciudades")
 @api_view(['GET'])
-@permission_classes([IsAuthenticated,])
+@authentication_classes([JWTNewCliente,])
 def lista_ciudades(request, estado):
     revisar_estado_AIT(estado)
     if estado == 'A':
