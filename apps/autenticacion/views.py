@@ -195,7 +195,8 @@ class SocialLoginView(generics.GenericAPIView):
                 "error":"invalid token",
                 "details": str(error)
             }, status=status.HTTP_400_BAD_REQUEST)
-        if authenticated_user and authenticated_user.is_active:
+        # if authenticated_user and authenticated_user.is_active:
+        if authenticated_user:
             #generate JWT token
             # login(request, authenticated_user)
             data={
