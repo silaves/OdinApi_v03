@@ -1,5 +1,8 @@
+import jwt
 from django.conf import settings
 from rest_framework import permissions
+from rest_framework import authentication, exceptions
+from .models import Usuario
 
 class IsCliente(permissions.BasePermission):
     group_name = settings.GRUPO_CLIENTE

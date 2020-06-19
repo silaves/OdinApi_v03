@@ -22,13 +22,16 @@ urlpatterns = [
     path('empresario/inactivos/', views.getEmpresarios_inactivos),
     path('taxista/activos/', views.getTaxistas_activos),
     path('taxista/inactivos/', views.getTaxistas_inactivos),
-
-    # path('empresario/crear/', views.crear_empresario),
-    path('android/<str:app>/', views.get_last_version),
     path('atencion/ciudad/<int:id_ciudad>/', views.get_responsable_ciudad),
 
     path('usuario/horario/crear/', views.crear_horario),
     path('usuario/horario/<int:id_horario>/editar/', views.editar_horario),
     path('usuario/horario/<int:id_horario>/ver/', views.ver_horario),
     path('usuario/horario/lista/', views.lista_horarios),
+    # PIN
+    path('usuario/pin/solicitar/', views.obtener_pin, name='Obtener Pin'),
+    path('usuario/pin/verificar/', views.verificar_pin, name='Verificar Pin'),
+
+    # path('empresario/crear/', views.crear_empresario),
+    path('android/<str:app>/', views.get_last_version),
 ]

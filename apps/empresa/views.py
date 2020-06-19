@@ -739,12 +739,6 @@ def crear_pedido_f(request):
         raise PermissionDenied('No esta autorizado')
     obj = CrearPedidoSerializer(data=request.data)
     obj.is_valid(raise_exception=True)
-    # verificar PIN
-    # telf = str(request.user.perfil.telefono)
-    # if cache.get(telf) is None:
-    #     raise PermissionDenied('El PIN ha expirado')
-    # if cache.get(telf) != obj.validated_data['pin']:
-    #     raise PermissionDenied('El PIN es incorrecto.')
 
     # validar ubicaciones
     pedido = Pedido()
@@ -775,7 +769,6 @@ def crear_pedido_f(request):
     pedido.save()
     pedido.precio_final += pedido.total
     pedido.save()
-    # cache.delete(telf)
     return Response({'mensaje':'Se ha creado el pedido correctamente'})
 
 
@@ -1965,22 +1958,6 @@ def calificar_producto(request, id_producto):
 
 
 
-
-# PIN
-@api_view(['POST'])
-@permission_classes([IsAuthenticated,IsCliente,])
-def obtener_pin(request):
-    length = settings.PIN_LENGTH
-    try:
-        telf = request.data['telefono']
-    except:
-        raise PermissionDenied('El numero de telefono es requerido')
-    pin = str(random.sample(range(10**(length-1), 10**length), 1)[0])
-    cache.set(str(telf), pin, 5*60)
-    return Response({'pin':pin})
-
-def verificar_pin(telefono, pin):
-    return pin == cache.get(str(telefono))
 
 
 

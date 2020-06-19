@@ -8,8 +8,9 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Group
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.core.exceptions import NON_FIELD_ERRORS
+from django.db.models import Q
 
-from .validators import validar_porcentaje
+from .validators import validar_porcentaje, validar_telefono
 from apps.autenticacion.managers import CustomUserManager
 
 class Ciudad(models.Model):
@@ -102,6 +103,13 @@ class Perfil(models.Model):
     disponibilidad = models.CharField(max_length=1, default='N',choices=(
 		('L','Libre'),('O', 'Ocupado'),('N', 'No Disponible')
 	))
+
+    def clean(self):
+        if self.telefono:
+            if len(str(self.telefono)) != 8:
+                raise ValidationError('Formato de numero de telefono incorrecto')
+            if Perfil.objects.filter( Q(telefono=self.telefono) &  ~Q(id=self.id)).exists():
+                raise ValidationError('El numero ya esta registrado')
 
     class Meta:
         ordering = ['usuario']

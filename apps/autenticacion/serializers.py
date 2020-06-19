@@ -3,6 +3,7 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from drf_yasg.utils import swagger_serializer_method
+from django.db.models import Q
 
 from .models import Usuario, Perfil, Ciudad, Horario
 
@@ -172,6 +173,14 @@ class PerfilNormalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Perfil
         fields = ('telefono',)
+    
+    def validate_telefono(self, value):
+        if value:
+            if len(str(value)) != 8:
+                raise serializers.ValidationError('Formato de numero de telefono incorrecto')
+            if Perfil.objects.filter(Q(telefono=value) &  ~Q(id=self.instance.id)).exists():
+                raise serializers.ValidationError('El numero ya esta registrado')
+        return value
 
 
 class UsuarioNormalSerializer(serializers.ModelSerializer):

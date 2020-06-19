@@ -190,6 +190,10 @@ SCHEDULER_AUTOSTART = True
 URL_MATRIX = 'https://maps.googleapis.com/maps/api/distancematrix/json?'
 API_KEY_MATRIX = 'AIzaSyC5UY7bQchG2hQ8FzvWe50DEcF-G3uqkxY'
 
+# twilio SMS
+SMS_SSID = 'AC22d75fb487a8cedc696aa248fb9a100f'
+SMS_TOKEN = 'accd14e4c298d5dad315959ef7bf9314'
+
 GRUPO_ENCARGADO_CIUDAD = 'responsable_region'
 GRUPO_EMPRESARIO = 'empresario'
 GRUPO_CLIENTE = 'cliente'

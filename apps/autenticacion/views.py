@@ -1,4 +1,5 @@
 import jwt
+import random
 from drf_yasg.utils import swagger_auto_schema
 
 from django.shortcuts import render
@@ -8,6 +9,7 @@ from django.http import JsonResponse
 from django.conf import settings
 from requests.exceptions import HTTPError
 from django.db.models import F
+from django.core.cache import cache
 
 from rest_framework import permissions, exceptions
 from rest_framework import generics, permissions, status, views
@@ -16,7 +18,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes,authentication_classes
 
 from social_django.utils import load_strategy, load_backend
 from social_core.backends.oauth import BaseOAuth2
@@ -28,7 +30,8 @@ from .serializers import (RegistrarseSerializer, LoginSerializer, UsuarioSeriali
 from . import serializers
 from .renderers import UserJSONRenderer
 from .models import Usuario, Perfil, VersionesAndroidApp, EncargadoCiudad, Ciudad, Horario
-
+from .backends import JWTNewCliente
+import apps.autenticacion.sms as sms
 
 
 # parar verificar si el usuario tiene permisos
@@ -526,6 +529,54 @@ def lista_horarios(request):
     horarios = Horario.objects.filter(usuario__id=usuario.id)
     obj = VerHorarioNew_Serializer(horarios, many=True).data
     return Response(obj)
+
+
+# PIN
+
+# vistas que solo utilizaran los clientes que nuevos que estan registrando su numero
+@api_view(['POST'])
+@authentication_classes([JWTNewCliente,])
+def obtener_pin(request):
+    obj = UsuarioNormalSerializer(request.user,data=request.data)
+    obj_perfil = PerfilNormalSerializer(request.user.perfil,data=request.data)
+    
+    obj.is_valid(raise_exception=True)
+    obj_perfil.is_valid(raise_exception=True) 
+
+    telf = str(obj_perfil.validated_data['telefono'])
+    length = settings.PIN_LENGTH
+    pin = str(random.sample(range(10**(length-1), 10**length), 1)[0])
+    ss = sms.send_pin("ODIN\nTu codigo de verificacion es: " + pin, '+591'+telf)
+    if ss is None:
+        return Response({'detail':'Hubo un problema al enviar el SMS'},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    cache.set(telf, pin, 5*60)
+    return Response({'mensaje':pin})
+
+
+@api_view(['POST'])
+@authentication_classes([JWTNewCliente,])
+def verificar_pin(request):
+    try:
+        pin = str(request.data['pin'])
+    except:
+        raise PermissionDenied('El numero PIN es requerido')
+    
+    obj = UsuarioNormalSerializer(request.user,data=request.data)
+    obj_perfil = PerfilNormalSerializer(request.user.perfil,data=request.data)
+    
+    obj.is_valid(raise_exception=True)
+    obj_perfil.is_valid(raise_exception=True)
+    telf = obj_perfil.validated_data['telefono']
+    if pin == cache.get(telf):
+        obj.save(is_active=True)
+        obj_perfil.save()
+        cache.delete(telf)
+        # request.user.is_active = True
+        # request.user.save()
+    else:
+        raise PermissionDenied('El PIN es incorrecto o ha caducado')
+    return Response({'mensaje':'Verificado correctamente'})
 
 
 # @api_view(['GET'])

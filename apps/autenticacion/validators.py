@@ -15,3 +15,8 @@ def validar_porcentaje(value):
         raise ValidationError('El valor no puede ser negativo')
     if value.compare(Decimal('100')) == 1:
         raise ValidationError('El valor no debe ser mayor a 100')
+
+
+def validar_telefono(value):
+    if len(str(value)) != 8:
+        raise ValidationError('Formato de numero de telefono incorrecto')

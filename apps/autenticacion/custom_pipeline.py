@@ -68,9 +68,10 @@ def get_username(strategy, details, social, backend, user=None, *args, **kwargs)
         if not Usuario.objects.filter(username=final_username).exists():
             # print(username)
             user.username = final_username
-            print('------ username     ',final_username,'     username-------')
+            # print('------ username     ',final_username,'     username-------')
             user.nombres = details['first_name']
             user.apellidos = details['last_name']
+            user.is_active = False
             user.save()
             perfil = Perfil()
             perfil.usuario = user
