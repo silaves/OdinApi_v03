@@ -273,11 +273,11 @@ def get_sucurales_by_distancia(request, estado, id_ciudad):
     obj = Ubicacion_Serializer(data=request.data)
     obj.is_valid(raise_exception=True)
     if estado == 'A':
-        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(ciudad__id=id_ciudad, estado=True)
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad, estado=True)
     elif estado == 'I':
-        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(ciudad__id=id_ciudad, estado=False)
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad, estado=False)
     elif estado == 'T':
-        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(ciudad__id=id_ciudad)
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad)
     else:
         raise NotFound('No se encontro el estado')
     
