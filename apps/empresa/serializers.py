@@ -80,6 +80,26 @@ class VerCategoria_Serializer(serializers.ModelSerializer):
         model = CategoriaProducto
         fields = ['id','nombre','codigo','estado']
 
+class Ubicacion_Serializer(serializers.Serializer):
+    ubicacion = serializers.CharField(max_length=255, required=True)
+
+    def validate_ubicacion(self, value):
+        if value[0] == '{' and value[len(value)-1] == '}':  
+            try:
+                val = value[:-1].split(',')
+                v1 = val[0].split(':')[1]
+                v2 = val[1].split(':')[1]
+            except:
+                raise serializers.ValidationError('Formato incorrecto de ubicacion')
+        else:
+            raise serializers.ValidationError('Formato incorrecto de ubicacion')
+        try:
+            latitude = Decimal(v1)
+            longitude = Decimal(v2)
+        except:
+            raise serializers.ValidationError('Formato incorrecto de ubicacion')
+        return value
+
 class SucursalSerializer(serializers.ModelSerializer):
     empresa = EmpresaSerializer()
     ciudad = VerCiudad_Serializer()

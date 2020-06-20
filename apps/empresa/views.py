@@ -38,7 +38,7 @@ from .models import *
 from .serializers import *
 from .pagination import CursorPagination, LimitOffsetPagination, CursorPagination_Ranking
 from apps.autenticacion.backends import JWTNewCliente
-
+from .utils import calcular_sucursal_distances
 
 # CIUDAD
 
@@ -47,6 +47,15 @@ from apps.autenticacion.backends import JWTNewCliente
 @api_view(['GET'])
 @authentication_classes([JWTNewCliente,])
 def lista_ciudades(request, estado):
+    ini = ti.time()
+    # -16.4974909,-68.1527442
+    # -16.5137028,-68.1255788
+    
+    lat1 = -16.4959514
+    lon1 = -68.1368699
+    lat2 = -16.5151752
+    lon2 = -68.1200343
+
     revisar_estado_AIT(estado)
     if estado == 'A':
         ciudades = Ciudad.objects.filter(estado=True)
@@ -233,6 +242,7 @@ def getAll_Sucursales_by_categoria(request, estado, id_ciudad, id_categoria):
 
 
 
+
 # lista de todas las sucursales por ciudad
 @swagger_auto_schema(method="GET",responses={200:SucursalSerializer(many=True)},operation_id="Lista de Todas las Sucursales del Sistema por ciudad",
     operation_description="Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos las sucursales")
@@ -251,6 +261,58 @@ def get_sucurales_sistema(request, estado, id_ciudad):
     
     data = ShowSucursal_Serializer(sucursales, many=True).data
     return Response(data)
+
+
+# lista de sucursales mas cercanas por ciudad
+@swagger_auto_schema(method="GET",responses={200:SucursalSerializer(many=True)},operation_id="Lista de Todas las Sucursales mas Cercanas por Ciudad",
+    operation_description="Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos las sucursales")
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def get_sucurales_by_distancia(request, estado, id_ciudad):
+    ciudad = revisar_ciudad(id_ciudad)
+    obj = Ubicacion_Serializer(data=request.data)
+    obj.is_valid(raise_exception=True)
+    if estado == 'A':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(ciudad__id=id_ciudad, estado=True)
+    elif estado == 'I':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(ciudad__id=id_ciudad, estado=False)
+    elif estado == 'T':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(ciudad__id=id_ciudad)
+    else:
+        raise NotFound('No se encontro el estado')
+    
+    distances = ShowSucursal_Serializer(sucursales, many=True).data
+    data = calcular_sucursal_distances(distances, obj.validated_data['ubicacion'])
+    
+    return Response(data)
+
+
+
+# lista de las sucursales mas cercanas, por categoria, ciudad, categoria
+@swagger_auto_schema(method="GET",responses={200:SucursalSerializer(many=True)},operation_id="Lista de las Sucursales mas Cercanas, Ciudad y Categoria",
+    operation_description="Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos las sucursales")
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def get_sucurales_by_distancia_categoria(request, estado, id_ciudad, id_categoria):
+    ciudad = revisar_ciudad(id_ciudad)
+    if not CategoriaProducto.objects.filter(pk=id_categoria, estado=True).exists():
+        raise NotFound('No se encontro la categoria o no esta disponible')
+
+    obj = Ubicacion_Serializer(data=request.data)
+    obj.is_valid(raise_exception=True)
+
+    if estado == 'A':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad, categoria__id=id_categoria, estado=True)
+    elif estado == 'I':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad, categoria__id=id_categoria, estado=False)
+    elif estado == 'T':
+        sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad, categoria__id=id_categoria)
+    else:
+        raise NotFound('No se encontro la url')
+    distances = ShowSucursal_Serializer(sucursales, many=True).data
+    data = calcular_sucursal_distances(distances, obj.validated_data['ubicacion'])
+    return Response(data)
+
 
 
 # obtener sucursal
