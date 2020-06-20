@@ -494,11 +494,10 @@ class PedidoProductos(serializers.ModelSerializer):
 
 class CrearPedidoSerializer(serializers.ModelSerializer):
     productos = PedidoProductos(required=True,many=True)
-    # pin = serializers.CharField(max_length=settings.PIN_LENGTH, required=True)
 
     class Meta:
         model = Pedido
-        fields = ('sucursal','ubicacion','productos')
+        fields = ('sucursal','ubicacion','productos','nota')
     
     def validate(self, data):
         for x in data['productos']:
@@ -546,7 +545,7 @@ class EditarPedidoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Pedido
-        fields = ('ubicacion','productos')
+        fields = ('ubicacion','productos','nota')
     
     def validate(self, data):
         try:
@@ -614,7 +613,7 @@ class CrearPedidoSerializer_Empresario(serializers.ModelSerializer):
 
     class Meta:
         model = Pedido
-        fields = ('sucursal','ubicacion','productos')
+        fields = ('sucursal','ubicacion','productos','nota')
     
     def validate(self, data):
         try:
@@ -669,7 +668,7 @@ class EditarPedidoSerializer_Empresario(serializers.ModelSerializer):
 
     class Meta:
         model = Pedido
-        fields = ('ubicacion','total','productos')
+        fields = ('ubicacion','total','productos','nota')
     
     def validate(self, data):
         try:
@@ -847,6 +846,7 @@ class ShowPedido_Serializer(serializers.Serializer):
             'is_calificado_cliente':instance.is_calificado_cliente,
             'is_calificado_empresario':instance.is_calificado_empresario,
             'is_calificado_repartidor':instance.is_calificado_repartidor,
+            'nota':instance.nota,
             'sucursal':{
                 'id':instance.sucursal.id,
                 'nombre':instance.sucursal.nombre,
@@ -951,6 +951,7 @@ class ShowPedido_forCliente_Serializer(serializers.Serializer):
             'is_calificado_cliente':instance.is_calificado_cliente,
             'is_calificado_empresario':instance.is_calificado_empresario,
             'is_calificado_repartidor':instance.is_calificado_repartidor,
+            'nota':instance.nota,
             'sucursal':instance.sucursal.id,
             'cliente':instance.cliente.id,
             'repartidor':instance.repartidor.id if instance.repartidor is not None else None,

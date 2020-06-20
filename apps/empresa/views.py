@@ -807,6 +807,11 @@ def crear_pedido_f(request):
     pedido.cliente = usuario
     pedido.total = Decimal(0.0)
     pedido.estado = 'A'
+    try:
+        pedido.nota = obj.validated_data['nota']
+    except:
+        pass
+
     suc = obj.validated_data['sucursal']
     pedido.sucursal = suc
     dire = obj.validated_data['ubicacion']
@@ -852,7 +857,10 @@ def editar_pedido_f(request,id_pedido):
     
     obj = EditarPedidoSerializer(pedido,data=request.data, partial=True)
     obj.is_valid(raise_exception=True)
-
+    try:
+        pedido.nota = obj.validated_data['nota']
+    except:
+        pass
     try:
         ubicacion = obj.validated_data['ubicacion']
     except:
@@ -1684,6 +1692,10 @@ def crear_pedido_empresario(request):
     pedido.cliente = usuario
     pedido.total = Decimal(0.0)
     pedido.estado = 'A'
+    try:
+        pedido.nota = obj.validated_data['nota']
+    except:
+        pass
     suc = obj.validated_data['sucursal']
     pedido.sucursal = suc
     dire = obj.validated_data['ubicacion']
@@ -1721,7 +1733,7 @@ def crear_pedido_empresario(request):
     return Response({'mensaje':'Se ha creado el pedido correctamente'})
 
 
-# editar pedido asd
+# editar pedido
 @swagger_auto_schema(method="POST",request_body=EditarPedidoSerializer_Empresario,responses={200:'Se ha modificado el pedido correctamente'},
     operation_id="Editar Pedido - Empresario", operation_description="Modifica los campos, ubicacion, total de un producto.")
 @api_view(['POST'])
@@ -1738,7 +1750,10 @@ def editar_pedido_empresario(request,id_pedido):
     
     obj = EditarPedidoSerializer_Empresario(pedido,data=request.data, partial=True)
     obj.is_valid(raise_exception=True)
-
+    try:
+        pedido.nota = obj.validated_data['nota']
+    except:
+        pass
     try:
         ubicacion = obj.validated_data['ubicacion']
     except:

@@ -221,6 +221,7 @@ class Pedido(models.Model):
     is_calificado_cliente = models.BooleanField(default=False, blank=False)
     is_calificado_empresario = models.BooleanField(default=False, blank=False)
     is_calificado_repartidor = models.BooleanField(default=False, blank=False)
+    nota = models.TextField(blank=True)
 
     class Meta:
         db_table = 'PEDIDO'
