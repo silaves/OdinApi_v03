@@ -39,11 +39,12 @@ def calcular_sucursal_distances(sucursales, ubicacion):
             p1 = _suvalues[0]
             p2 = _suvalues[1]
             km = calcular_distancia(u1, u2, p1, p2)
-            sucu['distancia'] = km
+            sucu['distancia'] = str(km)
             _sucursal.append(sucu)
         else:
             pass
-    return sorted(_sucursal, key=itemgetter('distancia'), reverse=False)
+    # return sorted(_sucursal, key=itemgetter('distancia'), reverse=False)
+    return _sucursal
         
 
 def _get_values_ubicacion(ubicacion):
