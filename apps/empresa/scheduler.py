@@ -4,7 +4,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from django_apscheduler.jobstores import DjangoJobStore,register_events, register_job
 
 from apps.empresa.models import Producto
-
+from .cleanup import remove_unused_media
 
 scheduler = BackgroundScheduler()
 scheduler.add_jobstore(DjangoJobStore(), "default")
@@ -19,6 +19,12 @@ def activar_desactivar_productos_del_dia():
         else:
             p.combo_activo = True
         p.save()
+
+
+@register_job(scheduler,'cron', hour='7', minute='1')
+def eliminar_imagenes_huerfanas():
+    # remove_unused_media(['*.png','*.jpeg'])
+    remove_unused_media()
 
 register_events(scheduler)
 scheduler.start()

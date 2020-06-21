@@ -40,13 +40,14 @@ from .pagination import CursorPagination, LimitOffsetPagination, CursorPaginatio
 from apps.autenticacion.backends import JWTNewCliente
 from .utils import calcular_sucursal_distances, calcular_tarifa
 
+
 # CIUDAD
 
 # lista de ciudades
 @swagger_auto_schema(method="GET",responses={200:VerCiudad_Serializer(many=True)},operation_id="Lista Ciudades")
 @api_view(['GET'])
 @authentication_classes([JWTNewCliente,])
-def lista_ciudades(request, estado):  
+def lista_ciudades(request, estado):
     revisar_estado_AIT(estado)
     if estado == 'A':
         ciudades = Ciudad.objects.filter(estado=True)
