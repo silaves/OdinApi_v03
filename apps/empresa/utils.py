@@ -113,4 +113,4 @@ def calcular_tarifa(origin, destination, ciudad):
         if kmt >= c.km_inicial:
             result += (kmt-c.km_inicial) * c.costo
             kmt -= kmt-c.km_inicial
-    return result.quantize(Decimal('0.0'),ROUND_DOWN)
+    return result.quantize(Decimal('0'),ROUND_DOWN)
