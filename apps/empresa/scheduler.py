@@ -21,7 +21,7 @@ def activar_desactivar_productos_del_dia():
         p.save()
 
 
-@register_job(scheduler,'cron', hour='7', minute='1')
+@register_job(scheduler,'cron', hour='6', minute='5')
 def eliminar_imagenes_huerfanas():
     # remove_unused_media(['*.png','*.jpeg'])
     remove_unused_media()
