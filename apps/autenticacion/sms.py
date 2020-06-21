@@ -36,7 +36,7 @@ def send_pin(message, number):
         return False
     message = cliente.messages.create(
         body = message,
-        from_ = _number_from,
+        from_ = 'ODIN',
         to = number
     )
     # print(message.sid)

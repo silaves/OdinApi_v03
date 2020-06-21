@@ -38,7 +38,7 @@ from .models import *
 from .serializers import *
 from .pagination import CursorPagination, LimitOffsetPagination, CursorPagination_Ranking
 from apps.autenticacion.backends import JWTNewCliente
-from .utils import calcular_sucursal_distances
+from .utils import calcular_sucursal_distances, calcular_tarifa
 
 # CIUDAD
 
@@ -46,16 +46,7 @@ from .utils import calcular_sucursal_distances
 @swagger_auto_schema(method="GET",responses={200:VerCiudad_Serializer(many=True)},operation_id="Lista Ciudades")
 @api_view(['GET'])
 @authentication_classes([JWTNewCliente,])
-def lista_ciudades(request, estado):
-    ini = ti.time()
-    # -16.4974909,-68.1527442
-    # -16.5137028,-68.1255788
-    
-    lat1 = -16.4959514
-    lon1 = -68.1368699
-    lat2 = -16.5151752
-    lon2 = -68.1200343
-
+def lista_ciudades(request, estado):  
     revisar_estado_AIT(estado)
     if estado == 'A':
         ciudades = Ciudad.objects.filter(estado=True)
@@ -818,7 +809,7 @@ def crear_pedido_f(request):
     pedido.ubicacion = dire
     if suc.ubicacion is None:
         raise PermissionDenied('La sucursal no tiene establecido su ubicacion')
-    costo_envio = calcular_tarifa_repartidor(suc.ubicacion, dire, suc.ciudad.id)
+    costo_envio = calcular_tarifa(suc.ubicacion, dire, suc.ciudad)
     if costo_envio is None:
         raise PermissionDenied('Comunicarse con la sucursal para que establezca los precios de envio')
     pedido.costo_envio = costo_envio
@@ -872,7 +863,7 @@ def editar_pedido_f(request,id_pedido):
         is_productos = False
     
     pedido.ubicacion = ubicacion
-    costo_envio = calcular_tarifa_repartidor(pedido.sucursal.ubicacion, ubicacion, pedido.sucursal.ciudad.id)
+    costo_envio = calcular_tarifa(pedido.sucursal.ubicacion, ubicacion, pedido.sucursal.ciudad)
     pedido.costo_envio = costo_envio
     pedido.precio_final = costo_envio
 
@@ -1703,7 +1694,7 @@ def crear_pedido_empresario(request):
     if suc.ubicacion is None:
         raise PermissionDenied('La sucursal no tiene establecido su ubicacion')
     
-    costo_envio = calcular_tarifa_repartidor(suc.ubicacion, dire, suc.ciudad.id)
+    costo_envio = calcular_tarifa(suc.ubicacion, dire, suc.ciudad)
     if costo_envio is None:
         raise PermissionDenied('Comunicarse con la sucursal para que establezca los precios de envio')
     pedido.costo_envio = costo_envio
@@ -1765,7 +1756,7 @@ def editar_pedido_empresario(request,id_pedido):
         total = pedido.total
 
     pedido.ubicacion = ubicacion
-    costo_envio = calcular_tarifa_repartidor(pedido.sucursal.ubicacion, ubicacion, pedido.sucursal.ciudad.id)
+    costo_envio = calcular_tarifa(pedido.sucursal.ubicacion, ubicacion, pedido.sucursal.ciudad)
     if costo_envio is None:
         raise PermissionDenied('Comunicarse con la sucursal para que establezca los precios de envio')
     pedido.costo_envio = costo_envio
@@ -1801,58 +1792,6 @@ def editar_pedido_empresario(request,id_pedido):
 
 
 
-
-# calcular tarifa envio pedido
-
-def calculate_distance(origin, destination):
-    url = settings.URL_MATRIX
-    key = settings.API_KEY_MATRIX
-    result = requests.get(url + 'units=metric&origins='+origin+'&destinations='+destination+'&key='+key)
-    if result:
-        pass
-    else:
-        return Decimal(0)
-    js = result.json()
-    # if js['status'] != 'OK':
-    #     return Decimal(0)
-    try:
-        metros = js['rows'][0]['elements'][0]['distance']['value']
-    except:
-        return Decimal(0)
-    return Decimal(metros/1000)
-
-
-def _converter(value):
-    val = value[:-1].split(',')
-    v1 = val[0].split(':')[1]
-    v2 = val[1].split(':')[1]
-    return v1+','+v2
-
-
-def calcular_tarifa_repartidor(origin, destination, id_ciudad):
-    kmp = calculate_distance(_converter(origin), _converter(destination))
-    
-    ciudad = Ciudad.objects.get(pk=id_ciudad)
-    min_tarifa = ciudad.costo_min
-    query = TarifaCostoEnvio.objects.filter(ciudad__id=id_ciudad, estado=True).order_by('-km_inicial')
-    if query.count() <= 0:
-        return None
-    cont = query.count()
-    _next = -1
-    result = Decimal(0)
-    for x in query:
-        if kmp >= x.km_inicial:
-            result = kmp*x.costo
-            if _next > 0:
-                if result > _next:
-                    result = _next
-                if result < min_tarifa:
-                    result = min_tarifa
-            break
-        _next = x.km_inicial*x.costo
-    # result = result.quantize(Decimal('0.1'),ROUND_UP)
-    result = result.quantize(Decimal('0'),ROUND_DOWN)
-    return result
 
 
 
