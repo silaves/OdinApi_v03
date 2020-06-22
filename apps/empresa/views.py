@@ -273,10 +273,10 @@ def get_sucurales_by_distancia(request, estado, id_ciudad):
     else:
         raise NotFound('No se encontro el estado')
     
-    distances = ShowSucursalDistancia_Serializer(sucursales, many=True, context={'ubicacion':obj.validated_data['ubicacion']}).data
-    # data = calcular_sucursal_distances(distances, obj.validated_data['ubicacion'])
+    distances = ShowSucursal_Serializer(sucursales, many=True).data
+    data = calcular_sucursal_distances(distances, obj.validated_data['ubicacion'])
     
-    return Response(distances)
+    return Response(data)
 
 
 
