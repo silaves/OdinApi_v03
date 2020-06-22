@@ -275,10 +275,8 @@ def get_sucurales_by_distancia(request, estado, id_ciudad):
     
     distances = ShowSucursal_Serializer(sucursales, many=True).data
     data = calcular_sucursal_distances(distances, obj.validated_data['ubicacion'])
-    p1 = json.dumps(data)
-    p2 = json.loads(p1)
-
-    return Response(p2)
+    
+    return Response(data)
 
 
 
