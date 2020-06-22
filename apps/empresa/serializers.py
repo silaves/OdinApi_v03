@@ -1,7 +1,7 @@
 import re
 import json
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal,ROUND_HALF_UP
 
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -12,7 +12,7 @@ from rest_framework import serializers
 from apps.autenticacion.models import Usuario, Ciudad, Horario
 from apps.autenticacion.serializers import PerfilSerializer, VerCiudad_Serializer
 from .models import Empresa, Sucursal, Combo, Producto, CategoriaEmpresa, Pedido, PedidoProducto,CategoriaProducto
-
+from .utils import calcular_distancia,_get_values_ubicacion
 
 class CategoriaEmpresaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -149,6 +149,62 @@ class ShowSucursal_Serializer(serializers.Serializer):
             }
         }
 
+
+# TEST PARA DISTANCIA
+
+def calc_distance(_subicacion, ubicacion):
+    _sucursal = []
+    _uvalues = _get_values_ubicacion(ubicacion)
+    u1 = _uvalues[0]
+    u2 = _uvalues[1]
+    if _subicacion:
+        _suvalues = _get_values_ubicacion( _subicacion )
+        p1 = _suvalues[0]
+        p2 = _suvalues[1]
+        km = calcular_distancia(u1, u2, p1, p2)
+        return Decimal(km)
+    return None
+
+class ShowSucursalDistancia_Serializer(serializers.Serializer):
+
+    def to_representation(self, instance):
+        return {
+            'id':instance.id,
+            'nombre':instance.nombre,
+            'disponible':instance.disponible,
+            'estado':instance.estado,
+            'telefono':instance.telefono,
+            'ubicacion':instance.ubicacion,
+            'direccion':instance.direccion,
+            'calificacion':str(instance.calificacion.normalize()),
+            'cant_calificacion':instance.cant_calificacion,
+            'distancia':calc_distance(instance.ubicacion, self.context.get('ubicacion')),
+            'foto':instance.foto.url if instance.foto else None,
+            # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
+            'empresa':{
+                'id':instance.empresa.id, 
+                'nombre':instance.empresa.nombre,
+                'descripcion':instance.empresa.descripcion,
+                'categoria':{
+                    'id':instance.empresa.categoria.id,
+                    'nombre':instance.empresa.categoria.nombre,
+                    'estado':instance.empresa.categoria.estado
+                }
+            },
+            'hora_inicio':instance.hora_inicio,
+            'hora_fin':instance.hora_fin,
+            'ciudad':{
+                'id':instance.ciudad.id,
+                'nombre':instance.ciudad.nombre,
+                'estado':instance.ciudad.estado,
+                'comision_porcentaje':str(instance.ciudad.comision_porcentaje)
+            },
+            'categoria':{
+                'id':instance.categoria.id,
+                'nombre':instance.categoria.nombre,
+                'codigo':instance.categoria.codigo
+            }
+        }
 
 class CambiarDisponibleSucursal_Serializer(serializers.ModelSerializer):
     class Meta:
