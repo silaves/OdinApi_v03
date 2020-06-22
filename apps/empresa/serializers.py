@@ -162,7 +162,7 @@ def calc_distance(_subicacion, ubicacion):
         p1 = _suvalues[0]
         p2 = _suvalues[1]
         km = calcular_distancia(u1, u2, p1, p2)
-        return Decimal(km)
+        return Decimal(km).quantize(Decimal('0.00001'),ROUND_HALF_UP).normalize()
     return None
 
 class ShowSucursalDistancia_Serializer(serializers.Serializer):
@@ -179,6 +179,8 @@ class ShowSucursalDistancia_Serializer(serializers.Serializer):
             'calificacion':str(instance.calificacion.normalize()),
             'cant_calificacion':instance.cant_calificacion,
             'distancia':calc_distance(instance.ubicacion, self.context.get('ubicacion')),
+            'distancia22':str(calc_distance(instance.ubicacion, self.context.get('ubicacion'))),
+            'distancia33':str(calc_distance(instance.ubicacion, self.context.get('ubicacion')))+' km',
             'foto':instance.foto.url if instance.foto else None,
             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
             'empresa':{
