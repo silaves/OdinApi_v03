@@ -293,11 +293,18 @@ def get_sucurales_by_distancia(request, estado, id_ciudad):
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def get_sucurales_by_distancia_categoria(request, estado, id_ciudad, id_categoria):
+    try:
+        latitud = request.query_params['latitud']
+        longitud = request.query_params['longitud']
+    except:
+        raise NotFound('Ingrese latitud y longitud')
+        
     ciudad = revisar_ciudad(id_ciudad)
     if not CategoriaProducto.objects.filter(pk=id_categoria, estado=True).exists():
         raise NotFound('No se encontro la categoria o no esta disponible')
 
-    obj = Ubicacion_Serializer(data=request.data)
+    ubicacion = json.dumps({'latitud':float(latitud),'longitud':float(longitud)})
+    obj = Ubicacion_Serializer(data={'ubicacion':ubicacion})
     obj.is_valid(raise_exception=True)
 
     if estado == 'A':

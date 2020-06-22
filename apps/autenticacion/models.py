@@ -108,8 +108,8 @@ class Perfil(models.Model):
         if self.telefono:
             if len(str(self.telefono)) != 8:
                 raise ValidationError('Formato de numero de telefono incorrecto')
-            if Perfil.objects.filter( Q(telefono=self.telefono) &  ~Q(id=self.id)).exists():
-                raise ValidationError('El numero ya esta registrado')
+            # if Perfil.objects.filter( Q(telefono=self.telefono) &  ~Q(id=self.id)).exists():
+            #     raise ValidationError('El numero ya esta registrado')
 
     class Meta:
         ordering = ['usuario']
