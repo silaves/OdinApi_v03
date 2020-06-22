@@ -261,8 +261,15 @@ def get_sucurales_sistema(request, estado, id_ciudad):
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def get_sucurales_by_distancia(request, estado, id_ciudad):
+    try:
+        latitud = request.query_params['latitud']
+        longitud = request.query_params['longitud']
+    except:
+        raise NotFound('Ingrese latitud y longitud')
+    
     ciudad = revisar_ciudad(id_ciudad)
-    obj = Ubicacion_Serializer(data=request.data)
+    ubicacion = json.dumps({'latitud':float(latitud),'longitud':float(longitud)})
+    obj = Ubicacion_Serializer(data={'ubicacion':ubicacion})
     obj.is_valid(raise_exception=True)
     if estado == 'A':
         sucursales = Sucursal.objects.select_related('empresa','ciudad','empresa__categoria').filter(empresa__categoria__nombre=settings.COMIDA,ciudad__id=id_ciudad, estado=True)

@@ -178,8 +178,8 @@ class PerfilNormalSerializer(serializers.ModelSerializer):
         if value:
             if len(str(value)) != 8:
                 raise serializers.ValidationError('Formato de numero de telefono incorrecto')
-            if Perfil.objects.filter(Q(telefono=value) &  ~Q(id=self.instance.id)).exists():
-                raise serializers.ValidationError('El numero ya esta registrado')
+            # if Perfil.objects.filter(Q(telefono=value) &  ~Q(id=self.instance.id)).exists():
+            #     raise serializers.ValidationError('El numero ya esta registrado')
         return value
 
 
