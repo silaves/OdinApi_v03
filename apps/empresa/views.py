@@ -278,7 +278,7 @@ def get_sucurales_by_distancia(request, estado, id_ciudad):
     p1 = json.dumps(data)
     p2 = json.loads(p1)
 
-    return p2
+    return Response(p2)
 
 
 
