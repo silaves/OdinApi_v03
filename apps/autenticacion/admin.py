@@ -149,7 +149,7 @@ class CustomUserAdmin(UserAdmin):
             else:
                 return ([
                     ('Informacion Personal', {'fields': ('username','password','nombres', 'apellidos','email','ciudad','foto')}),
-                    ('Permisos', {'fields': ('is_staff', 'is_active','groups', 'user_permissions')}),
+                    ('Permisos', {'fields': ('is_staff', 'is_active','is_register','groups', 'user_permissions')}),
                 ])
         else:
             if request.user.groups.filter(name=settings.GRUPO_ENCARGADO_CIUDAD).exists():

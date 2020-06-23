@@ -221,5 +221,5 @@ class EditUsuarioForm(CustomUserChangeForm):
     )
     class Meta(CustomUserChangeForm):
         model = Usuario
-        fields = ('username','password','nombres','apellidos','email','foto','ciudad','is_staff','is_active',
+        fields = ('username','password','nombres','apellidos','email','foto','ciudad','is_staff','is_active','is_register',
             'groups','user_permissions',)

@@ -243,7 +243,7 @@ class PedidoProducto(models.Model):
         verbose_name_plural = _('pedido_productos')
     
     def __str__(self):
-        return self.id
+        return str(self.id)
 
 
 class Chat_Pedido(models.Model):
