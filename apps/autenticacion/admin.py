@@ -62,7 +62,7 @@ class CustomUserAdmin(UserAdmin):
     add_form = UsuarioForm
     change_form = EditUsuarioForm
     model = Usuario
-    list_display = ('username','id', 'nombres', 'apellidos', 'is_staff', 'is_active', 'get_groups', 'last_login')
+    list_display = ('username','id', 'email','nombres', 'apellidos', 'is_staff', 'is_active', 'last_login')
     list_filter = ('is_staff', 'is_active', 'groups')
     # fieldsets = (
     #     ('Informacion Personal', {'fields': ('username', 'password', 'nombres', 'apellidos','email','foto','ciudad')}),
@@ -76,7 +76,7 @@ class CustomUserAdmin(UserAdmin):
     # )
     ordering = ('-id',)
     inlines = (PerfilInline, HorarioInline,)
-    search_fields = ('username',)
+    search_fields = ('username','email',)
     # ordering = ('username',)
     actions = ['activar_usuario','dar_baja_usuario']
 
