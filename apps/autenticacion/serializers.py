@@ -216,7 +216,7 @@ class PerfilSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Usuario
-        fields = ('id','username','email','nombres','apellidos','is_active','token_firebase','foto','ciudad','perfil','telefono','calificacion','disponibilidad','grupos','horario')
+        fields = ('id','username','email','nombres','apellidos','is_active','is_register','token_firebase','foto','ciudad','perfil','telefono','calificacion','disponibilidad','grupos','horario')
     
     def getTelefono(self, usuario):
         try:

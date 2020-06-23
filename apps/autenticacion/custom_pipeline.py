@@ -7,10 +7,15 @@ from .models import Perfil
 from django.contrib.auth.models import Group
 from apps.autenticacion.models import Usuario
 
+from django.core import files
+from io import BytesIO
+import requests
+
 USER_FIELDS = ['username', 'email']
 
 # obtener el usuario de los datos recibidos para crearlos posteriormente
 def get_username(strategy, details, social, backend, user=None, *args, **kwargs):
+    print(user is None,'     XXX')
     if 'username' not in backend.setting('USER_FIELDS', USER_FIELDS):
         return
     storage = strategy.storage
@@ -45,12 +50,13 @@ def get_username(strategy, details, social, backend, user=None, *args, **kwargs)
         #     username = details['username']
         # else:
         #     username = uuid4().hex
-        username = uuid4().hex
-        short_username = (username[:max_length - uuid_length]
-                          if max_length is not None
-                          else username)
-        final_username = slug_func(clean_func(username[:max_length]))
-
+        final_username = uuid4().hex
+        # short_username = (username[:max_length - uuid_length]
+        #                   if max_length is not None
+        #                   else username)
+        # final_username = short_username + uuid4().hex[:uuid_length]
+        # final_username = slug_func(clean_func(username[:max_length]))
+        # final_username = str(details['first_name'])+str(uuid4().hex)
         # Generate a unique username for current user using username
         # as base but adding a unique hash at the end. Original
         # username is cut to avoid any field max_length.
@@ -60,22 +66,25 @@ def get_username(strategy, details, social, backend, user=None, *args, **kwargs)
             username = short_username + uuid4().hex[:uuid_length]
             final_username = slug_func(clean_func(username[:max_length]))
     else:
+        print(user.username,'  pppppp')
         final_username = storage.user.get_username(user)
     
     # asocia el usuario a cliente
     if social is not None:
-        final_username = str(details['first_name'])+str(social.uid)
-        if not Usuario.objects.filter(username=final_username).exists():
-            # print(username)
-            user.username = final_username
-            # print('------ username     ',final_username,'     username-------')
-            user.nombres = details['first_name']
-            user.apellidos = details['last_name']
-            user.is_active = False
+        # final_username = str(details['first_name'])+str(social.uid)
+        # if not Usuario.objects.filter(username=final_username).exists():
+        if user:
+            # # print('------ username     ',final_username,'     username-------')
+            if user.nombres is None or user.nombres == '':
+                user.nombres = details['first_name']
+            if user.apellidos is None or user.apellidos == '':
+                user.apellidos = details['last_name']
+            # user.is_registered = False
             user.save()
-            perfil = Perfil()
-            perfil.usuario = user
-            perfil.save()
+            if not Perfil.objects.filter(usuario__email=user.email).exists():
+                perfil = Perfil()
+                perfil.usuario = user
+                perfil.save()
             grupo = Group.objects.get(name=settings.GRUPO_CLIENTE)
             user.groups.add(grupo)
             user.save()
@@ -87,9 +96,6 @@ def create_user(strategy, details, backend, user=None, *args, **kwargs):
 
     if user:
         return {'is_new': False}
-    
-    # if not allowed_email(details.get('email')):
-    #     return
     fields = dict(
             (name, kwargs.get(name, details.get(name))
              )
@@ -103,7 +109,13 @@ def create_user(strategy, details, backend, user=None, *args, **kwargs):
 
 
 def save_profile(backend, user, response, *args, **kwargs):
-    if user :
-        print(user.username,'      def save_profile()')
+    if user:
+        if backend.name == 'facebook':
+            url = "http://graph.facebook.com/%s/picture?type=large"%response['id']
+            resp = requests.get(url)
+            if resp.status_code == requests.codes.ok:
+                fp = BytesIO()
+                fp.write(resp.content)
+                user.foto.save(user.username+'_social.jpg', files.File(fp))
     else:
         print('no hay usuarui   def save_profle()')

@@ -571,7 +571,7 @@ def verificar_pin(request):
     obj_perfil.is_valid(raise_exception=True)
     telf = obj_perfil.validated_data['telefono']
     if pin == cache.get(telf):
-        obj.save(is_active=True)
+        obj.save(is_register=True)
         obj_perfil.save()
         cache.delete(telf)
         # request.user.is_active = True

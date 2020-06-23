@@ -33,6 +33,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('correo electronico'), unique=True)
     is_staff = models.BooleanField(_('Acceso al Sitio Administrativo'), default=False)
     is_active = models.BooleanField(_('Activar usuario'), default=True)
+    is_register = models.BooleanField(_('Registrado'), default=False)
     fecha_registro = models.DateTimeField(default=timezone.now)
     nombres = models.CharField(_('nombres'), blank=True, max_length=40)
     apellidos = models.CharField(_('Apellidos'), blank=True, max_length=40)
