@@ -37,7 +37,7 @@ class ProductoAdmin(admin.ModelAdmin):
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):
     list_display = ('id','cliente','sucursal','repartidor','precio_final','comision_odin','fecha')
-    list_filter = ('sucursal','fecha','estado')
+    list_filter = ('sucursal','fecha','estado','sucursal__ciudad')
     search_fields = ('id',)
     list_per_page = 20
 
