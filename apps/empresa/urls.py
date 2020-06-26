@@ -115,4 +115,5 @@ urlpatterns = [
     path('empresa/sucursal/pedido/<int:id_pedido>/calificar/repartidor/', views.calificar_para_repartidor, name='Calificar para Repartidor'),
     path('empresa/sucursal/pedido/<int:id_pedido>/calificar/empresario/', views.calificar_para_empresa, name='Calificar para Empresa'),
 
+    path('convert/', views.get_value_from_url, name='convert url'),
 ]

@@ -1,6 +1,7 @@
 import time as ti
 import json
 import requests
+import ast
 import jwt
 import random
 from datetime import date, datetime, time
@@ -1988,7 +1989,18 @@ def calificar_producto(request, id_producto):
     return Response({'mensaje':'Se ha calificado el producto'})
 
 
-
+@api_view(['GET'])
+@permission_classes([AllowAny,])
+def get_value_from_url(request):
+    url = request.query_params.get('url')
+    session = requests.Session()
+    resp = session.head(url, allow_redirects=True)
+    # print(dict(resp.url))
+    # scrape = '['+ret.split('cacheResponse([[')[1].split(',[')[0].split(',',1)[1]
+    # location = ast.literal_eval(scrape)
+    # print(location)
+    
+    return Response({'url':url})
 
 
 
