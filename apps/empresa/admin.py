@@ -123,8 +123,38 @@ class EmpresaAdmin(admin.ModelAdmin):
             form.base_fields['empresario'].queryset = Usuario.objects.filter(is_active=True,groups__name=settings.GRUPO_EMPRESARIO)
         return form
 
+
+
+@admin.register(Sucursal)
+class SucursalAdmin(admin.ModelAdmin):
+    list_display = ('nombre_completo','id','disponible','estado','empresa_link')
+    list_filter = ('ciudad','estado','disponible')
+    search_fields = ('empresa__nombre',)
+    actions = ('activar_sucursal','dar_baja_sucursal')
+
+    def nombre_completo(self, obj):
+        return obj.empresa.nombre+' - '+obj.nombre
+
+    def empresa_link(self, obj):
+        empresa = obj.empresa
+        opts = empresa._meta
+        author_edit_url = reverse('admin:empresa_empresa_change', args=[empresa.pk])
+        return format_html(
+            '<a{}>{}</a>', flatatt({'href': author_edit_url}), empresa.nombre)
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    def activar_sucursal(self, request, queryset):
+        queryset.update(estado=True)
+
+    def dar_baja_sucursal(self, request, queryset):
+        queryset.update(estado=False)
 # admin.site.register(Empresa)
-admin.site.register(Sucursal)
+# admin.site.register(Sucursal)
 
 # admin.site.register(Pedido)
 # admin.site.register(Pedido, ProductoAdmin)
