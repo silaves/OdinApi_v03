@@ -615,7 +615,7 @@ def get_last_version(request, app):
         version = apk.repartidor
     else:
         raise NotFound('No se encontro la ruta')
-    return Response({'version':version})
+    return Response({'version':version,'descripcion':apk.descripcion,'link':apk.link})
 
 
 

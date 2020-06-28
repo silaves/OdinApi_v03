@@ -96,8 +96,6 @@ class CustomUserAdmin(UserAdmin):
         queryset.update(is_active=False)
 
     def get_groups(self, obj):
-        print(obj)
-        print("*-*-*-*-*-*-*-")
         #qs = Group.objects.filter(CustomUser.username = obj)
         #print(qs)
         q1 = Usuario.objects.get(username = obj)

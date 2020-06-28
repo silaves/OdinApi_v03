@@ -15,7 +15,7 @@ USER_FIELDS = ['username', 'email']
 
 # obtener el usuario de los datos recibidos para crearlos posteriormente
 def get_username(strategy, details, social, backend, user=None, *args, **kwargs):
-    print(user is None,'     XXX')
+    # print(user is None,'     XXX')
     if 'username' not in backend.setting('USER_FIELDS', USER_FIELDS):
         return
     storage = strategy.storage
@@ -66,7 +66,7 @@ def get_username(strategy, details, social, backend, user=None, *args, **kwargs)
             username = short_username + uuid4().hex[:uuid_length]
             final_username = slug_func(clean_func(username[:max_length]))
     else:
-        print(user.username,'  pppppp')
+        # print(user.username,'  pppppp')
         final_username = storage.user.get_username(user)
     
     # asocia el usuario a cliente

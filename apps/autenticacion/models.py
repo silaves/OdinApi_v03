@@ -139,6 +139,8 @@ class VersionesAndroidApp(models.Model):
     usuario = models.IntegerField(default=1, blank=False)
     empresario = models.IntegerField(default=1,blank=False)
     repartidor = models.IntegerField(default=1,blank=False)
+    descripcion = models.TextField(blank=True)
+    link = models.URLField(max_length=255, blank=True)
     creado = models.DateTimeField(auto_now_add=True)
 
     class Meta:
