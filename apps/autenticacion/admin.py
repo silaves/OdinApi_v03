@@ -117,6 +117,9 @@ class CustomUserAdmin(UserAdmin):
                 self.form.base_fields['ciudad'].empty_label = None
                 self.form.base_fields['groups'].queryset = Group.objects.filter(name__in=grupos_disponibles_encargado)
                 self.form.base_fields['groups'].required = True
+            else:
+                self.form.base_fields['ciudad'].queryset = Ciudad.objects.filter(estado=True)
+                self.form.base_fields['groups'].queryset = Group.objects.all()
             return self.form
         else:
             self.form = self.change_form
