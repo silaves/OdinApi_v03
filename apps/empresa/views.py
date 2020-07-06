@@ -578,9 +578,9 @@ def get_productos_estado_ranking(request, tipo_producto):
     paginator = CursorPagination_Ranking()
 
     if is_combo == None:
-        productos = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA,estado=True, combo_activo=True)
+        productos = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA, sucursal__ciudad=request.user.ciudad,estado=True, combo_activo=True)
     else:
-        productos = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA,estado=True, is_combo=is_combo, combo_activo=True)
+        productos = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA, sucursal__ciudad=request.user.ciudad,estado=True, is_combo=is_combo, combo_activo=True)
     
     page = paginator.paginate_queryset(productos, request)
     sr = ShowProductoAdvanced_Serializer(page, many=True, context={'request':request}).data
