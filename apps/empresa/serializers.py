@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import make_naive
 
 from rest_framework import serializers
+from easy_thumbnails.templatetags.thumbnail import thumbnail_url
 
 from apps.autenticacion.models import Usuario, Ciudad, Horario
 from apps.autenticacion.serializers import PerfilSerializer, VerCiudad_Serializer
@@ -123,6 +124,8 @@ class ShowSucursal_Serializer(serializers.Serializer):
             'calificacion':str(instance.calificacion.normalize()),
             'cant_calificacion':instance.cant_calificacion,
             'foto':instance.foto.url if instance.foto else None,
+            'foto_small':thumbnail_url(instance.foto, 'small'),
+            'foto_medium':thumbnail_url(instance.foto, 'medium'),
             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
             'empresa':{
                 'id':instance.empresa.id, 
@@ -316,6 +319,8 @@ class ShowProductoAdvanced_Serializer(serializers.Serializer): # revisar
             },
             'categoria':ShowCategoriaProducto_Serializer(instance.categoria).data,
             'foto':instance.foto.url if instance.foto else None,
+            'foto_small':thumbnail_url(instance.foto, 'small'),
+            'foto_medium':thumbnail_url(instance.foto, 'medium'),
             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
             'is_combo':instance.is_combo,
             'calificacion':str(instance.calificacion.normalize()),

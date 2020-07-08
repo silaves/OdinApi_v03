@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'apps.ecommerce',
     'drf_yasg',
     'django_apscheduler',
+    'easy_thumbnails',
 ]
 
 MIDDLEWARE = [
@@ -212,6 +213,18 @@ MAXIMO_HORARIOS = 2
 
 # PIN
 PIN_LENGTH = 5
+
+# formatos miniaturas
+# THUMBNAIL_DEBUG = False
+THUMBNAIL_ALIASES = {
+    '': {
+        'small': {'size': (300, 300)},
+        'medium': {'size': (600, 600)},
+    },
+}
+
+
+
 
 
 

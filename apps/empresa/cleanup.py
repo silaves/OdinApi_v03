@@ -3,7 +3,7 @@ import re
 import time
 import six
 
-from django.conf import settings
+from easy_thumbnails.models import Source, Thumbnail
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.apps import apps
@@ -63,7 +63,14 @@ def get_unused_media(exclude=None, minimum_file_age=None):
         exclude = []
     all_media = get_all_media(exclude, minimum_file_age)
     used_media = get_used_media()
-    return all_media - used_media
+    # eliminar en la base de datos
+    delete_sources_easy_thumbnails(used_media)
+    # obtener thumbnails que no deben eliminarse
+    thumbnail = remove_thumbnails_files(used_media,all_media)
+    # elimina los campos de thumbnail
+    delete_easy_thumbnails(thumbnail)
+
+    return (all_media - used_media)-thumbnail
 
 
 def remove_unused_media(exclude=None):
@@ -115,3 +122,44 @@ def remove_empty_dirs(path=None):
         return True
     else:
         return False
+
+
+# para eliminar los thumbnails
+def delete_sources_easy_thumbnails(names):
+    name = []
+    for x in names:
+        name.append(x.split('/media/')[1])
+    sources = Source.objects.all().exclude(name__in=name).delete()
+    # if sources.exists():
+    #     print(Thumbnail.objects.filter(source=sources[0]))
+    #     for thumb in Thumbnail.objects.filter(source=sources[0]):
+    #         try:
+    #             print(thumb.name)
+    #             # os.remove(os.path.join(settings.MEDIA_ROOT, thumb.name))
+    #             # thumb.delete()
+    #         except Exception as e:
+    #             print(e)
+    #             return False
+    return True
+
+def delete_easy_thumbnails(names):
+    name = []
+    for x in names:
+        name.append(x.split('/media/')[1])
+    sources = Thumbnail.objects.all().exclude(name__in=name).delete()
+    return True
+
+# obtiene un set donde se encuentran archivos thumbnails que no deben eliminarse
+def remove_thumbnails_files(used_media, all_media):
+    thumbnail = set()
+    for am in all_media:
+        for x in used_media:
+            name = x.split('/media/')[1]
+            # para excluir solo las especificadas en settings.THUMBNAIL_ALIASES
+            val = (settings.THUMBNAIL_ALIASES)['']
+            for v in val.values():
+                # concatenar 300X300 ej
+                resol = '.'+str(v['size'][0])+'x'+str(v['size'][1])
+                if name+resol in am:
+                    thumbnail.add(am)
+    return thumbnail
