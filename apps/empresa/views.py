@@ -903,13 +903,14 @@ def editar_pedido_f(request,id_pedido):
 
 
 
+# QUEDA EN DESUSO PORQUE EL ESTADO SE CAMBIA CUANDO EL USUARIO TOMA EL PEDIDO
 # cambia el estado del pedido a en curso
 @swagger_auto_schema(method="POST", responses={200:'El pedido ha sido puesto en curso'},operation_id="Establecer Pedido a en curso",
     operation_description="Cambia el estado del pedido a 'en curso', siempre y cuando este en 'activo'")
 @api_view(['POST'])
 @permission_classes([IsAuthenticated,])
 def cambiar_pedido_en_curso(request, id_pedido):
-    usuario = get_user_by_token(request)
+    # usuario = get_user_by_token(request)
     try:
         pedido = Pedido.objects.get(pk=id_pedido)
     except:
@@ -920,7 +921,9 @@ def cambiar_pedido_en_curso(request, id_pedido):
         raise PermissionDenied('El pedido ya esta en marcha')
     if pedido.estado == 'C':
         raise PermissionDenied('El pedido ya esta cancelado')
-    revisar_propietario_sucursal(usuario,pedido.sucursal)
+    # revisar_propietario_sucursal(usuario,pedido.sucursal)
+    if request.user != pedido.repartidor:
+        raise PermissionDenied('Usted no esta autorizado')
     pedido.estado = 'E'
     pedido.save()
 
@@ -956,7 +959,7 @@ def cambiar_pedido_en_marcha(request, id_pedido):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated,])
 def cambiar_pedido_en_finalizado(request, id_pedido):
-    usuario = get_user_by_token(request)
+    # usuario = get_user_by_token(request)
     try:
         pedido = Pedido.objects.get(pk=id_pedido)
     except:
@@ -967,7 +970,9 @@ def cambiar_pedido_en_finalizado(request, id_pedido):
         raise PermissionDenied('El pedido ya esta cancelado')
     if pedido.estado == 'E':
         raise PermissionDenied('El pedido ya esta en curso')
-    revisar_propietario_sucursal(usuario,pedido.sucursal)
+    # revisar_propietario_sucursal(usuario,pedido.sucursal)
+    if request.user != pedido.repartidor:
+        raise PermissionDenied('Usted no esta autorizado')
     pedido.estado = 'F'
     pedido.save()
 
@@ -1468,31 +1473,35 @@ def cambiar_disponibilidad_repartidor(request):
 
 # tomar pedido
 @swagger_auto_schema(method="POST",responses={200:'asd'},operation_id="Repartidor - Aceptar Pedido",
-    operation_description='Permite al repartidor aceptar un pedido.')
+    operation_description='Permite al repartidor aceptar un pedido que esta activo (A).')
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,))
 def aceptar_pedido(request,id_pedido):
     usuario = get_user_by_token(request)
     if not is_member(usuario, settings.GRUPO_REPARTIDOR):
         return Response({'error':'No esta autorizado'})
-    pedido = revisar_pedido(id_pedido)
+    try:
+        pedido = Pedido.objects.get(pk=id_pedido)
+    except:
+        raise NotFound('No se encontro el pedido')
     validar_repartidor_activo(usuario)
-    if pedido.estado == 'E':
+    if pedido.estado == 'A':
         if pedido.repartidor is None:
             pedido.repartidor = usuario
+            pedido.estado = 'E'
             pedido.save()
         else:
             raise PermissionDenied('El pedido ya ha sido tomado por otro usuario')
     else:
-        raise PermissionDenied('El pedido no se encuentra en curso')
+        raise PermissionDenied('El pedido no se encuentra activo')
 
     return Response({'mensaje':'Ha tomado el pedido'})
 
 
 
-# obtener pedidos de todas las sucursales (en curso)
+# obtener pedidos de todas las sucursales (activos)
 @swagger_auto_schema(method="GET",responses={200:ShowPedido_Serializer(many=True)},operation_id="Lista de todos los Pedidos (DIA)",
-    operation_description='Devuelve la lista de todos los pedidos que se encuentren en curso (E) y que  no hallan sido tomados por ningun otro repartidor. ')
+    operation_description='Devuelve la lista de todos los pedidos que se encuentren activos (A) y que  no hallan sido tomados por ningun otro repartidor. ')
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def get_pedidos_for_repartidor(request):
@@ -1508,7 +1517,7 @@ def get_pedidos_for_repartidor(request):
     hora_inicio = get_hora_apertura(hora_actual)
     hora_fin = hora_actual
     pedidos = Pedido.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__empresario','sucursal__empresa__empresario__perfil','sucursal__empresa__empresario__ciudad',
-        'cliente','cliente__ciudad','cliente__perfil','repartidor','repartidor__ciudad','repartidor__perfil').filter(sucursal__ciudad__id=usuario.ciudad.id,estado='E',repartidor=None,fecha__gte=hora_inicio,fecha__lte=hora_fin)
+        'cliente','cliente__ciudad','cliente__perfil','repartidor','repartidor__ciudad','repartidor__perfil').filter(sucursal__ciudad__id=usuario.ciudad.id,estado='A',repartidor=None,fecha__gte=hora_inicio,fecha__lte=hora_fin)
     data = ShowPedido_Serializer(pedidos, many=True, context={'request':request}).data
     return Response(data)
 
@@ -2048,7 +2057,7 @@ def revisar_estado_pedido(estado):
     return estado
 
 def revisar_estado_pedido_repartidor(estado):
-    if not(estado == 'E' or estado == 'F' or estado == 'C' or estado == 'M'):
+    if not(estado == 'A' or estado == 'E' or estado == 'F' or estado == 'C' or estado == 'M'):
         raise NotFound('No existe la ruta')
     return estado
 
