@@ -105,10 +105,24 @@ class SucursalSerializer(serializers.ModelSerializer):
     empresa = EmpresaSerializer()
     ciudad = VerCiudad_Serializer()
     categoria = VerCategoria_Serializer()
+    foto_150 = serializers.SerializerMethodField()
+    foto_300 = serializers.SerializerMethodField()
+    foto_450 = serializers.SerializerMethodField()
 
     class Meta:
         model = Sucursal
-        fields = ['id','nombre','disponible','estado','telefono','ubicacion','direccion','foto','empresa','hora_inicio','hora_fin','ciudad','calificacion','categoria']
+        fields = ['id','nombre','disponible','estado','telefono','ubicacion','direccion','foto','empresa','hora_inicio','hora_fin','ciudad',
+            'calificacion','categoria','foto_150','foto_300','foto_450']
+    
+    def get_foto_150(self, obj):
+        return thumbnail_url(obj.foto, '150')
+    
+    def get_foto_300(self, obj):
+        return thumbnail_url(obj.foto, '300')
+    
+    def get_foto_450(self, obj):
+        return thumbnail_url(obj.foto, '450')
+
 
 class ShowSucursal_Serializer(serializers.Serializer):
 
@@ -127,10 +141,6 @@ class ShowSucursal_Serializer(serializers.Serializer):
             'foto_150':thumbnail_url(instance.foto, '150'),
             'foto_300':thumbnail_url(instance.foto, '300'),
             'foto_450':thumbnail_url(instance.foto, '450'),
-            'foto_600':thumbnail_url(instance.foto, '600'),
-            'foto_750':thumbnail_url(instance.foto, '750'),
-            'foto_900':thumbnail_url(instance.foto, '900'),
-            'foto_1050':thumbnail_url(instance.foto, '1050'),
             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
             'empresa':{
                 'id':instance.empresa.id, 
@@ -255,6 +265,9 @@ class ShowProductoBasic_Serializer(serializers.Serializer): # revisar
             'estado':instance.estado,
             'sucursal':instance.sucursal.id,
             'foto':instance.foto.url if instance.foto else None,
+            'foto_150':thumbnail_url(instance.foto, '150'),
+            'foto_300':thumbnail_url(instance.foto, '300'),
+            'foto_450':thumbnail_url(instance.foto, '450'),
             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
             'is_combo':instance.is_combo,
             'calificacion':str(instance.calificacion.normalize()),
@@ -327,10 +340,6 @@ class ShowProductoAdvanced_Serializer(serializers.Serializer): # revisar
             'foto_150':thumbnail_url(instance.foto, '150'),
             'foto_300':thumbnail_url(instance.foto, '300'),
             'foto_450':thumbnail_url(instance.foto, '450'),
-            'foto_600':thumbnail_url(instance.foto, '600'),
-            'foto_750':thumbnail_url(instance.foto, '750'),
-            'foto_900':thumbnail_url(instance.foto, '900'),
-            'foto_1050':thumbnail_url(instance.foto, '1050'),
             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
             'is_combo':instance.is_combo,
             'calificacion':str(instance.calificacion.normalize()),

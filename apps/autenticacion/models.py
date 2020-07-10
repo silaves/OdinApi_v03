@@ -10,13 +10,17 @@ from django.core.exceptions import ValidationError
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.db.models import Q
 
-from .validators import validar_porcentaje, validar_telefono
+from .validators import validar_porcentaje, validar_telefono,validate_latitude_longitude
 from apps.autenticacion.managers import CustomUserManager
 
 class Ciudad(models.Model):
     nombre = models.CharField(max_length=40, unique=True)
     costo_min = models.DecimalField(_('Costo minimo'),max_digits=7, decimal_places=1, blank=False,help_text='Costo minimo de un envio en Bs.')
     comision_porcentaje = models.DecimalField(_('Comision'),default=0,max_digits=4, decimal_places=1, blank=False,help_text="el valor es un porcentaje", validators=[validar_porcentaje])
+    ubicacion = models.CharField(max_length=255, blank=True,
+        help_text='Valor(en json, latitud,longitud) que determina el centro del area, los pedidos que se encuentren dentro de esta area seran aceptados, de lo contrario no.',
+        validators=[validate_latitude_longitude,])
+    radio = models.DecimalField(default=0, max_digits=6, decimal_places=2, blank=True, help_text='El radio del area, valor decimal debe estar en km')
     estado = models.BooleanField(default=True)
 
     class Meta:

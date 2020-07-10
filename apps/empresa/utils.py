@@ -84,6 +84,7 @@ def _get_values_ubicacion(ubicacion):
 
 # calcular precio del delivery
 
+# calcular distancia para los pedidos
 def calculate_distance(origin, destination):
     url = settings.URL_MATRIX
     key = settings.API_KEY_MATRIX
@@ -116,3 +117,30 @@ def calcular_tarifa(origin, destination, ciudad):
             result += (kmt-c.km_inicial) * c.costo
             kmt -= kmt-c.km_inicial
     return result.quantize(Decimal('0'),ROUND_DOWN)
+
+
+
+# calcular distancia para validar si el pedido se encuentra dentro del area
+
+def validar_ubicacion_area(ubicacion, origen, radio):
+    data = dict()
+    if origen:
+        _origen = _get_values_ubicacion(origen)
+        o1 = _origen[0]
+        o2 = _origen[1]
+    else:
+        data['valido'] = True
+        data['distancia'] = 0
+        return data
+    _values = _get_values_ubicacion(ubicacion)
+    v1 = _values[0]
+    v2 = _values[1]
+    distancia = calcular_distancia(o1,o2,v1,v2)
+    if distancia > float(radio):
+        data['valido'] = False
+        # data['distancia'] = distancia
+        data['distancia'] = Decimal(distancia).quantize(Decimal('0.01'),ROUND_HALF_UP)
+    else:
+        data['valido'] = True
+        # data['distancia'] = distancia
+    return data

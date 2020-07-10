@@ -39,7 +39,7 @@ from .models import *
 from .serializers import *
 from .pagination import CursorPagination, LimitOffsetPagination, CursorPagination_Ranking
 from apps.autenticacion.backends import JWTNewCliente
-from .utils import calcular_sucursal_distances, calcular_tarifa
+from .utils import calcular_sucursal_distances, calcular_tarifa,validar_ubicacion_area
 
 
 # CIUDAD
@@ -809,7 +809,12 @@ def crear_pedido_f(request):
     obj = CrearPedidoSerializer(data=request.data)
     obj.is_valid(raise_exception=True)
 
-    # validar ubicaciones
+    # validar que el pedido se encuentre dentro del area
+    result = validar_ubicacion_area(obj.validated_data['ubicacion'], request.user.ciudad.ubicacion, request.user.ciudad.radio)
+    if not result['valido']:
+        raise PermissionDenied('Usted se encuentra fuera del rango permitido. La distancia maxima permitida es de %skm y usted se encuentra '
+            'a %skm.' % (request.user.ciudad.radio, result['distancia']))
+    # crea el pedido
     pedido = Pedido()
     pedido.cliente = usuario
     pedido.total = Decimal(0.0)
@@ -827,7 +832,7 @@ def crear_pedido_f(request):
         raise PermissionDenied('La sucursal no tiene establecido su ubicacion')
     costo_envio = calcular_tarifa(suc.ubicacion, dire, suc.ciudad)
     if costo_envio is None:
-        raise PermissionDenied('Comunicarse con la sucursal para que establezca los precios de envio')
+        raise PermissionDenied('Comunicate con la sucursal para que establezca los precios de envio')
     pedido.costo_envio = costo_envio
     pedido.precio_final = costo_envio
 
@@ -872,6 +877,13 @@ def editar_pedido_f(request,id_pedido):
         ubicacion = obj.validated_data['ubicacion']
     except:
         ubicacion = pedido.ubicacion
+
+    # validar que el pedido se encuentre dentro del area
+    result = validar_ubicacion_area(ubicacion, request.user.ciudad.ubicacion, request.user.ciudad.radio)
+    if not result['valido']:
+        raise PermissionDenied('Usted se encuentra fuera del rango permitido. La distancia maxima permitida es de %skm y usted se encuentra '
+            'a %skm.' % (request.user.ciudad.radio, result['distancia']))
+
     try:
         obj.validated_data['productos']
         is_productos = True
@@ -936,7 +948,7 @@ def cambiar_pedido_en_curso(request, id_pedido):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated,])
 def cambiar_pedido_en_marcha(request, id_pedido):
-    usuario = get_user_by_token(request)
+    # usuario = get_user_by_token(request)
     try:
         pedido = Pedido.objects.get(pk=id_pedido)
     except:
@@ -945,7 +957,9 @@ def cambiar_pedido_en_marcha(request, id_pedido):
         raise PermissionDenied('El pedido no esta en curso')
     if pedido.repartidor is None:
         raise PermissionDenied('No se ha asignado un repartidor')
-    revisar_propietario_sucursal(usuario,pedido.sucursal)
+    # revisar_propietario_sucursal(usuario,pedido.sucursal)
+    if request.user != pedido.repartidor:
+        raise PermissionDenied('Usted no esta autorizado')
     pedido.estado = 'M'
     pedido.save()
 
@@ -975,7 +989,7 @@ def cambiar_pedido_en_finalizado(request, id_pedido):
         raise PermissionDenied('Usted no esta autorizado')
     pedido.estado = 'F'
     pedido.save()
-
+    crear_ranking(id_pedido, pedido.cliente.id)
     return Response({'mensaje':'El pedido ha sido finalizado'})
 
 
@@ -994,12 +1008,21 @@ def cambiar_pedido_en_cancelado(request, id_pedido):
         raise NotFound('No se encontro el Pedido')
     if pedido.estado == 'F':
         raise PermissionDenied('no se puede cambiar el estado de un pedido finalizado')
-    if pedido.estado == 'E':
-        raise PermissionDenied('no se puede cancelar el estado de un pedido en curso')
+    if pedido.estado == 'C':
+        raise PermissionDenied('El pedido ya ha sido cancelado')
     if pedido.estado == 'M':
         raise PermissionDenied('no se puede cancelar el estado de un pedido en marcha')
-    pedido.estado = 'C'
-    pedido.save()
+
+    if request.user == pedido.cliente:
+        if pedido.estado == 'E':
+            raise PermissionDenied('no se puede cancelar un pedido en curso')
+        pedido.estado = 'C'
+        pedido.save()
+    elif request.user == pedido.repartidor:
+        pedido.estado = 'C'
+        pedido.save()
+    else:
+        raise PermissionDenied('Usted no esta autorizado')
 
     return Response({'mensaje':'El pedido ha sido cancelado'})
 
@@ -1017,7 +1040,7 @@ def cambiar_pedido_en_finalizado_cliente(request, id_pedido):
     except:
         raise NotFound('No se encontro el Pedido')
     if pedido.estado != 'M':
-        raise PermissionDenied({'El pedido no esta en marcha'})
+        raise PermissionDenied('El pedido no esta en marcha')
     if pedido.cliente.id != usuario.id:
         raise PermissionDenied('Usted no realizo el pedido')
     pedido.estado = 'F'
@@ -1498,7 +1521,7 @@ def aceptar_pedido(request,id_pedido):
     return Response({'mensaje':'Ha tomado el pedido'})
 
 
-
+# en la funcion validar_repartidor_activo() se comento la validacion del horario
 # obtener pedidos de todas las sucursales (activos)
 @swagger_auto_schema(method="GET",responses={200:ShowPedido_Serializer(many=True)},operation_id="Lista de todos los Pedidos (DIA)",
     operation_description='Devuelve la lista de todos los pedidos que se encuentren activos (A) y que  no hallan sido tomados por ningun otro repartidor. ')
@@ -1703,6 +1726,12 @@ def crear_pedido_empresario(request):
 
     if usuario.id != obj.validated_data['sucursal'].empresa.empresario.id:
         raise PermissionDenied('Solo el empresario de la sucursal puede realizar este tipo de pedidos.')
+    
+    # validar que el pedido se encuentre dentro del area
+    result = validar_ubicacion_area(obj.validated_data['ubicacion'], request.user.ciudad.ubicacion, request.user.ciudad.radio)
+    if not result['valido']:
+        raise PermissionDenied('Usted se encuentra fuera del rango permitido. La distancia maxima permitida es de %skm y usted se encuentra '
+            'a %skm.' % (request.user.ciudad.radio, result['distancia']))
 
     pedido = Pedido()
     pedido.cliente = usuario
@@ -1775,6 +1804,12 @@ def editar_pedido_empresario(request,id_pedido):
     except:
         ubicacion = pedido.ubicacion
     
+    # validar que el pedido se encuentre dentro del area
+    result = validar_ubicacion_area(ubicacion, request.user.ciudad.ubicacion, request.user.ciudad.radio)
+    if not result['valido']:
+        raise PermissionDenied('Usted se encuentra fuera del rango permitido. La distancia maxima permitida es de %skm y usted se encuentra '
+            'a %skm.' % (request.user.ciudad.radio, result['distancia']))
+
     try:
         total = obj.validated_data['total']
     except:
@@ -2104,9 +2139,9 @@ def validar_repartidor_activo(usuario):
         raise PermissionDenied('El usuario no tiene el perfil activo')
     if perfil.disponibilidad != 'L':
         raise PermissionDenied('El usuario no esta disponible')
-    ini = datetime.now().time()
-    if Horario.objects.filter(usuario__id=usuario.id,entrada__lte=ini,salida__gte=ini,estado=True).exists() is False:
-        raise PermissionDenied('El usuario no esta en horario de trabajo')
+    # ini = datetime.now().time()
+    # if Horario.objects.filter(usuario__id=usuario.id,entrada__lte=ini,salida__gte=ini,estado=True).exists() is False:
+    #     raise PermissionDenied('El usuario no esta en horario de trabajo')
     return True
 
 def get_or_error_categoria(id_categoria):

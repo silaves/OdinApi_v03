@@ -1,4 +1,4 @@
-from decimal import Decimal, ROUND_UP
+from decimal import Decimal, ROUND_UP,ROUND_HALF_UP
 from django.conf import settings
 from django.contrib import admin
 from django.utils.safestring import mark_safe
@@ -34,6 +34,14 @@ class ProductoAdmin(admin.ModelAdmin):
     inlines = (FotoProducto,)
 
 
+def to_change_ctvs(number):
+    mod = number-int(number)
+    n = int(number)
+    new_mod = '0'
+    if mod >= Decimal('0.50'):
+        new_mod = '5'
+    return Decimal(str(n)+'.'+new_mod)
+
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):
     list_display = ('id','cliente','sucursal','repartidor','precio_final','comision_odin','fecha')
@@ -49,7 +57,8 @@ class PedidoAdmin(admin.ModelAdmin):
 
     def comision_odin(self, obj):
         if obj.sucursal.ciudad.comision_porcentaje:
-            return ((obj.sucursal.ciudad.comision_porcentaje/Decimal(100))*obj.costo_envio).quantize(Decimal('0.1'),ROUND_UP)
+            return to_change_ctvs(((obj.sucursal.ciudad.comision_porcentaje/Decimal(100))*obj.costo_envio).quantize(Decimal('0.1'),ROUND_HALF_UP))
+
 
     def get_estado(self,obj):
         if obj.estado == 'A':
