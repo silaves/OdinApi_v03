@@ -1,12 +1,13 @@
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import make_naive
+from easy_thumbnails.templatetags.thumbnail import thumbnail_url
 
 from rest_framework import serializers
 
 from apps.autenticacion.models import Ciudad
 from apps.empresa.models import Producto, CategoriaProducto, FotoProducto, Empresa, Sucursal
-from apps.empresa.serializers import ShowSucursal_Serializer
+# from apps.empresa.serializers import ShowSucursal_Serializer
 
 # class atributo(serializer.Serializer):
 
@@ -67,6 +68,9 @@ class ShowSucursal_Serializer(serializers.Serializer):
             'ubicacion':instance.ubicacion,
             'direccion':instance.direccion,
             'foto':instance.foto.url if instance.foto else None,
+            'foto_150':thumbnail_url(instance.foto, '150'),
+            'foto_300':thumbnail_url(instance.foto, '300'),
+            'foto_450':thumbnail_url(instance.foto, '450'),
             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
             'empresa':{
                 'id':instance.empresa.id, 
@@ -156,6 +160,9 @@ class ShowBasicArticulo_Serializer(serializers.Serializer):
             'nombre':instance.nombre,
             'precio':str(instance.precio),
             'foto':instance.foto.url if instance.foto else None,
+            'foto_150':thumbnail_url(instance.foto, '150'),
+            'foto_300':thumbnail_url(instance.foto, '300'),
+            'foto_450':thumbnail_url(instance.foto, '450'),
             'creado':make_naive(instance.creado)
         }
 
@@ -206,6 +213,9 @@ class ShowAdvancedArticulo_Serializer(serializers.Serializer):
             'precio':str(instance.precio),
             'estado':instance.estado,
             'foto':instance.foto.url if instance.foto else None,
+            'foto_150':thumbnail_url(instance.foto, '150'),
+            'foto_300':thumbnail_url(instance.foto, '300'),
+            'foto_450':thumbnail_url(instance.foto, '450'),
             'creado':make_naive(instance.creado),
             'atributos':instance.atributos,
             'sucursal':ShowArticuloSucursal_Serializer(instance.sucursal).data,

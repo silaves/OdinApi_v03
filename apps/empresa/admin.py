@@ -137,7 +137,7 @@ class EmpresaAdmin(admin.ModelAdmin):
 @admin.register(Sucursal)
 class SucursalAdmin(admin.ModelAdmin):
     list_display = ('nombre_completo','id','disponible','estado','empresa_link')
-    list_filter = ('ciudad','estado','disponible')
+    list_filter = ('ciudad','estado','disponible','empresa__categoria')
     search_fields = ('empresa__nombre',)
     actions = ('activar_sucursal','dar_baja_sucursal')
 

@@ -355,7 +355,7 @@ def get_articulos_number_pagination(request, estado):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_articulos_by_sucursal(request, estado, id_sucursal):
-    if not Sucursal.objects.filter(pk=id_sucursal, estado=True).exists():
+    if not Sucursal.objects.filter(pk=id_sucursal, empresa__categoria__nombre=settings.ECOMMERCE, estado=True).exists():
         raise NotFound('No se encontro la sucursal o esta inactiva')
     if estado == 'A':
         query = Producto.objects.filter(estado=True, sucursal__id=id_sucursal).order_by('-creado')
