@@ -291,6 +291,8 @@ class ShowProductoBasicHijo_Serializer(serializers.Serializer): # revisar
             'estado':instance.estado,
             'sucursal':instance.sucursal.id,
             'foto':instance.foto.url if instance.foto else None,
+            'foto_150':thumbnail_url(instance.foto, '150'),
+            'foto_300':thumbnail_url(instance.foto, '300'),
             'dias_activos':instance.dias_activos,
             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
             'cantidad':Combo.objects.filter(combo__id=self.context.get('padre'),producto__id=instance.id).values('cantidad')[0]['cantidad']
@@ -467,6 +469,8 @@ class ShowProductoMedio_Serializer(serializers.Serializer):
             'estado':instance.estado,
             'sucursal':instance.sucursal.id,
             'foto':instance.foto.url if instance.foto else None,
+            'foto_150':thumbnail_url(instance.foto, '150'),
+            'foto_300':thumbnail_url(instance.foto, '300'),
             # 'foto':self.context.get('request').build_absolute_uri(instance.sucursal.foto.url) if instance.sucursal.foto else None,
             'is_combo':instance.is_combo,
             'calificacion':str(instance.calificacion.normalize()),
@@ -961,6 +965,8 @@ class ShowProductoPedido_Serializer(serializers.Serializer):
             # 'estado':instance.producto_final.estado,
             # 'sucursal':instance.producto_final.sucursal.id,
             'foto':instance.producto_final.foto.url if instance.producto_final.foto else None,
+            'foto_150':thumbnail_url(instance.producto_final.foto, '150'),
+            'foto_300':thumbnail_url(instance.producto_final.foto, '300'),
             # 'foto':self.context.get('request').build_absolute_uri(instance.producto_final.foto.url) if instance.producto_final.foto else None,
             'cantidad':instance.cantidad
         }
@@ -989,6 +995,8 @@ class ShowPedido_Serializer(serializers.Serializer):
                 'telefono':instance.sucursal.telefono,
                 'direccion':instance.sucursal.direccion,
                 'foto':instance.sucursal.foto.url if instance.sucursal.foto else None,
+                'foto_150':thumbnail_url(instance.sucursal.foto, '150'),
+                'foto_300':thumbnail_url(instance.sucursal.foto, '300'),
                 # 'foto':self.context.get('request').build_absolute_uri(instance.sucursal.foto.url) if instance.sucursal.foto else None,
                 'hora_inicio':instance.sucursal.hora_inicio,
                 'hora_fin':instance.sucursal.hora_fin,
@@ -1023,6 +1031,8 @@ class ShowPedido_Serializer(serializers.Serializer):
                 'apellidos':instance.cliente.apellidos,
                 'token_firebase':instance.cliente.token_firebase,
                 'foto':instance.cliente.foto.url if instance.cliente.foto else None,
+                'foto_150':thumbnail_url(instance.cliente.foto, '150'),
+                'foto_300':thumbnail_url(instance.cliente.foto, '300'),
                 # 'foto':self.context.get('request').build_absolute_uri(instance.cliente.foto.url) if instance.cliente.foto else None,
                 'username':instance.cliente.username,
                 'telefono':instance.cliente.perfil.telefono,
@@ -1040,6 +1050,8 @@ class ShowPedido_Serializer(serializers.Serializer):
                 'apellidos':instance.repartidor.apellidos,
                 'token_firebase':instance.repartidor.token_firebase,
                 'foto':instance.repartidor.foto.url if instance.repartidor.foto else None,
+                'foto_150':thumbnail_url(instance.repartidor.foto, '150'),
+                'foto_300':thumbnail_url(instance.repartidor.foto, '300'),
                 # 'foto':self.context.get('request').build_absolute_uri(instance.repartidor.foto.url) if instance.repartidor.foto else None,
                 'username':instance.repartidor.username,
                 'telefono':instance.repartidor.perfil.telefono,
@@ -1119,7 +1131,9 @@ class ProductoFinal_Paginator_Serializer(serializers.Serializer):
             'estado':instance.estado,
             'sucursal':instance.sucursal.id,
             # 'sucursal':Pedido.objects.select_related('sucursal')
-            'foto':instance.foto.url if instance.foto else None
+            'foto':instance.foto.url if instance.foto else None,
+            'foto_150':thumbnail_url(instance.foto, '150'),
+            'foto_300':thumbnail_url(instance.foto, '300'),
             # 'combo':True if Combo.objects.select_related('producto').exists() else False
             # 'combo':True if Combo.objects.filter(combo__id=instance.id).count() > 0 else False
         }
