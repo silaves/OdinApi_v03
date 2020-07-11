@@ -594,7 +594,6 @@ def get_productos_estado(request, estado, tipo_producto):
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def get_productos_estado_ranking(request, tipo_producto):
-    t1 = ti.time()
     if tipo_producto == 'C':
         is_combo = True
     elif tipo_producto == 'P':
@@ -614,46 +613,43 @@ def get_productos_estado_ranking(request, tipo_producto):
     page = paginator.paginate_queryset(productos, request)
     sr = ShowProductoAdvanced_Serializer(page, many=True, context={'request':request}).data
     data = paginator.get_paginated_response(sr)
-    t2 = ti.time()
-    print('normal     ',t2-t1)
+
     return data
 
 
 # en desarrollo
 # obtener combos por sucursal ( estado ) productos y combos - clientes distancia
-# @swagger_auto_schema(method="GET",responses={200:ShowProductoAdvanced_Serializer},operation_id="Lista de todos los Productos mejor puntuados ( combos ) Ranking",
-#     operation_description="Devuelve una lista de todos los productos. En el campo 'is_combo' si el producto es un combo devuelve true caso contrario false."
-#     "\n\n\tis_combo : true //es un combo\n\n\tis_combo : false //no es combo\n Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos los productos")
-# @api_view(['GET'])
-# @permission_classes((IsAuthenticated,))
-# def get_productos_estado_ranking_distancia(request, tipo_producto):
-#     t1 = ti.time()
-#     if tipo_producto == 'C':
-#         is_combo = True
-#     elif tipo_producto == 'P':
-#         is_combo = False
-#     elif tipo_producto == 'T':
-#         is_combo = None
-#     else:
-#         raise NotFound('No se encontro la url')
+@swagger_auto_schema(method="GET",responses={200:ShowProductoAdvanced_Serializer},operation_id="Lista de todos los Productos mejor puntuados ( combos ) Ranking",
+    operation_description="Devuelve una lista de todos los productos. En el campo 'is_combo' si el producto es un combo devuelve true caso contrario false."
+    "\n\n\tis_combo : true //es un combo\n\n\tis_combo : false //no es combo\n Para el estado:\n\n\t'A' para activos \n\t'I' para inactivos \n\t'T' para todos los productos")
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def get_productos_estado_ranking_distancia(request, tipo_producto):
+    if tipo_producto == 'C':
+        is_combo = True
+    elif tipo_producto == 'P':
+        is_combo = False
+    elif tipo_producto == 'T':
+        is_combo = None
+    else:
+        raise NotFound('No se encontro la url')
 
-#     try:
-#         latitud = float(request.query_params['latitud'])
-#         longitud = float(request.query_params['longitud'])
-#         size = int(request.query_params['size'])
-#     except:
-#         raise NotFound('Ingrese parametros latitud, longitud, size')
-#     size = size if size>=0 else 0
+    try:
+        latitud = float(request.query_params['latitud'])
+        longitud = float(request.query_params['longitud'])
+        size = int(request.query_params['size'])
+    except:
+        raise NotFound('Ingrese parametros latitud, longitud, size')
+    size = size if size>=0 else 0
 
-#     if is_combo == None:
-#         productos = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA, sucursal__ciudad=request.user.ciudad,estado=True, combo_activo=True).order_by('-calificacion')[:size]
-#     else:
-#         productos = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA, sucursal__ciudad=request.user.ciudad,estado=True, is_combo=is_combo, combo_activo=True).order_by('-calificacion')[:size]
+    if is_combo == None:
+        productos = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA, sucursal__ciudad=request.user.ciudad,estado=True, combo_activo=True).order_by('-calificacion')[:size]
+    else:
+        productos = Producto.objects.select_related('sucursal','sucursal__empresa','sucursal__empresa__categoria').filter(sucursal__empresa__categoria__nombre=settings.COMIDA, sucursal__ciudad=request.user.ciudad,estado=True, is_combo=is_combo, combo_activo=True).order_by('-calificacion')[:size]
     
-#     data = ShowProductoAdvancedDistancia_Serializer(productos, many=True, context={'latitud':latitud,'longitud':longitud}).data
-#     t2 = ti.time()
-#     print('dis    ',t2-t1)
-#     return Response(data)
+    data = ShowProductoAdvancedDistancia_Serializer(productos, many=True, context={'latitud':latitud,'longitud':longitud}).data
+
+    return Response(data)
 
 
 

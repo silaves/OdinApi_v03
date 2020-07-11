@@ -23,7 +23,7 @@ urlpatterns = [
     path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/categoria/<int:id_categoria>/cercanas/', views.get_sucurales_by_distancia_categoria, name='Lista de Sucursales mas Cercanas,Ciudad y Categoria'),
 
     path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/max/', views.getAll_Sucursales_max_calificacion, name='Lista todas Sucursales del Sistema por Calificacion'),
-    # path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/max/dis/', views.getAll_Sucursales_max_calificacion_distancia, name='Lista todas Sucursales del Sistema por Calificacion, Distancia,paginador'),
+    path('empresa/sucursal/<str:estado>/lista/ciudad/<int:id_ciudad>/max/dis/', views.getAll_Sucursales_max_calificacion_distancia, name='Lista todas Sucursales del Sistema por Calificacion, Distancia,paginador'),
     path('empresa/<int:id_empresa>/sucursal/<str:estado>/lista/', views.getSucursales, name='Lista de Sucursales por Empresa'),
     path('empresa/sucursal/<int:id_sucursal>/', views.getSucursal, name='Obtener Sucursal'),
     path('empresa/sucursal/<int:id_sucursal>/disponible/', views.cambiar_diponible_sucursal, name='Cambiar Disponibilidad Sucursal'),
@@ -37,7 +37,7 @@ urlpatterns = [
     path('empresa/sucursal/<int:id_sucursal>/producto/<str:estado>/', views.get_productos_estado_by_sucursal, name='Lista Producto por Sucursal (activos o inactivos)'),
 
     path('empresa/sucursal/producto/<str:tipo_producto>/rank/', views.get_productos_estado_ranking, name='Lista Todos los Productos mejores puntuados (activos o inactivos) RANKING Cursor'),
-    # path('empresa/sucursal/producto/<str:tipo_producto>/rank/dis/', views.get_productos_estado_ranking_distancia, name='Lista Todos los Productos mejores puntuados (activos o inactivos) RANKING Cursor'),
+    path('empresa/sucursal/producto/<str:tipo_producto>/rank/dis/', views.get_productos_estado_ranking_distancia, name='Lista Todos los Productos mejores puntuados (activos o inactivos) RANKING Cursor'),
     path('empresa/sucursal/producto/<str:estado>/ultimos/<int:limite>/', views.get_productos_estado_by_sucursal_ultimos, name='Lista Producto por Sucursal (activos o inactivos) ULTIMOS'),
     path('empresa/sucursal/producto/<str:estado>/categoria/<int:id_categoria>/', views.get_productos_categoria, name='Lista Producto por Categoria (activos o inactivos)'),
     path('empresa/sucursal/producto/<str:estado>/tipo/<str:tipo_producto>/', views.get_productos_estado, name='Lista Todos los Productos (activos o inactivos) Combo o Producto TODO'),

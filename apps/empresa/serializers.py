@@ -1,6 +1,6 @@
 import re
 import json
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
 from django.core.cache import cache
@@ -398,80 +398,55 @@ class ShowProductoAdvanced_Serializer(serializers.Serializer): # revisar
 
 
 
-# class ShowProductoAdvancedDistancia_Serializer(serializers.Serializer): # revisar
-#     def to_representation(self, instance):
-#         lati = self.context.get('latitud')
-#         longi = self.context.get('longitud')
+class ShowProductoAdvancedDistancia_Serializer(serializers.Serializer): # revisar
+    def to_representation(self, instance):
+        lati = self.context.get('latitud')
+        longi = self.context.get('longitud')
+        ubicacion = instance.sucursal.ubicacion
+        distancia = distancia_ubicacion_to_latlong(ubicacion, lati, longi) if ubicacion else None
 
-#         sucursales = dict()
-#         # sucursales[200]=1200
-#         distancia = None
-#         id_sucursal = instance.sucursal.id
-#         # print(id_sucursal)
-#         print(cache.get('sucursales_dis'))
-#         if cache.get('sucursales_dis'):
-#             ss = cache.get('sucursales_dis')
-#             print(ss,'   exste')
-#             if id_sucursal in ss:
-#                 distancia = ss[id_sucursal]
-#             else:
-#                 print('***********')
-#                 ubicacion = instance.sucursal.ubicacion
-#                 distancia = distancia_ubicacion_to_latlong(ubicacion, lati, longi) if ubicacion else None
-#                 sucursales[id_sucursal] = distancia
-#                 cache.set('sucursales_dis', sucursales, 60)
-#                 # sucursales.update( {id_sucursal : distancia} )
-#         else:    
-#             ubicacion = instance.sucursal.ubicacion
-#             distancia = distancia_ubicacion_to_latlong(ubicacion, lati, longi) if ubicacion else None
-#             sucursales[id_sucursal] = distancia
-#             cache.set('sucursales_dis', sucursales, 60)
-#             # sucursales.update( {id_sucursal : distancia} )
-        
-#         # print(sucursales)
-#         # print('----------------')
-#         return {
-#             'id':instance.id,
-#             'nombre':instance.nombre,
-#             'descripcion':instance.descripcion,
-#             'precio':str(instance.precio),
-#             'estado':instance.estado,
-#             'distancia':distancia,
-#             # 'creado':instance.creado,
-#             'sucursal':{
-#                 'id':instance.sucursal.id,
-#                 'nombre':instance.sucursal.nombre,
-#                 'disponible':instance.sucursal.disponible,
-#                 'estado':instance.sucursal.estado,
-#                 'telefono':instance.sucursal.telefono,
-#                 'ubicacion':instance.sucursal.ubicacion,
-#                 'direccion':instance.sucursal.direccion,
-#                 'foto':instance.sucursal.foto.url if instance.sucursal.foto else None,
-#                 # 'foto':self.context.get('request').build_absolute_uri(instance.sucursal.foto.url) if instance.sucursal.foto else None,
-#                 'empresa':{
-#                     'id':instance.sucursal.empresa.id, 
-#                     'nombre':instance.sucursal.empresa.nombre,
-#                     'descripcion':instance.sucursal.empresa.descripcion
-#                     },
-#                 'hora_inicio':instance.sucursal.hora_inicio,
-#                 'hora_fin':instance.sucursal.hora_fin
-#                 # 'ciudad':{
-#                 #     'id':instance.sucursal.ciudad.id,
-#                 #     'nombre':instance.sucursal.ciudad.nombre,
-#                 #     'estado':instance.sucursal.ciudad.estado
-#                 # }
-#             },
-#             'categoria':ShowCategoriaProducto_Serializer(instance.categoria).data,
-#             'foto':instance.foto.url if instance.foto else None,
-#             'foto_150':thumbnail_url(instance.foto, '150'),
-#             'foto_300':thumbnail_url(instance.foto, '300'),
-#             'foto_450':thumbnail_url(instance.foto, '450'),
-#             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
-#             'is_combo':instance.is_combo,
-#             'calificacion':str(instance.calificacion.normalize()),
-#             'dias_activos':instance.dias_activos,
-#             # 'combo':ShowProducto_Serializer( Producto.objects.select_related('sucursal','sucursal__empresa').filter(id__in=Combo.objects.filter(combo_id=obj.id).values('producto')), many=True ).data if instance.is_combo is True else False
-#         }
+        return {
+            'id':instance.id,
+            'nombre':instance.nombre,
+            'descripcion':instance.descripcion,
+            'precio':str(instance.precio),
+            'estado':instance.estado,
+            'distancia':distancia,
+            # 'creado':instance.creado,
+            'sucursal':{
+                'id':instance.sucursal.id,
+                'nombre':instance.sucursal.nombre,
+                'disponible':instance.sucursal.disponible,
+                'estado':instance.sucursal.estado,
+                'telefono':instance.sucursal.telefono,
+                'ubicacion':instance.sucursal.ubicacion,
+                'direccion':instance.sucursal.direccion,
+                'foto':instance.sucursal.foto.url if instance.sucursal.foto else None,
+                # 'foto':self.context.get('request').build_absolute_uri(instance.sucursal.foto.url) if instance.sucursal.foto else None,
+                'empresa':{
+                    'id':instance.sucursal.empresa.id, 
+                    'nombre':instance.sucursal.empresa.nombre,
+                    'descripcion':instance.sucursal.empresa.descripcion
+                    },
+                'hora_inicio':instance.sucursal.hora_inicio,
+                'hora_fin':instance.sucursal.hora_fin
+                # 'ciudad':{
+                #     'id':instance.sucursal.ciudad.id,
+                #     'nombre':instance.sucursal.ciudad.nombre,
+                #     'estado':instance.sucursal.ciudad.estado
+                # }
+            },
+            'categoria':ShowCategoriaProducto_Serializer(instance.categoria).data,
+            'foto':instance.foto.url if instance.foto else None,
+            'foto_150':thumbnail_url(instance.foto, '150'),
+            'foto_300':thumbnail_url(instance.foto, '300'),
+            'foto_450':thumbnail_url(instance.foto, '450'),
+            # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
+            'is_combo':instance.is_combo,
+            'calificacion':str(instance.calificacion.normalize()),
+            'dias_activos':instance.dias_activos,
+            # 'combo':ShowProducto_Serializer( Producto.objects.select_related('sucursal','sucursal__empresa').filter(id__in=Combo.objects.filter(combo_id=obj.id).values('producto')), many=True ).data if instance.is_combo is True else False
+        }
 
 
 # class ProductoVerSerializer(serializers.ModelSerializer):
@@ -684,6 +659,14 @@ class CrearPedidoSerializer(serializers.ModelSerializer):
     def validate_productos(self, value):
         if len(value) < 1:
             raise serializers.ValidationError('El pedido debe tener al menos 1 producto.')
+        return value
+    
+    def validate_sucursal(self, value):
+        if value.disponible is False:
+            raise serializers.ValidationError('La sucursal no esta disponible')
+        hora_actual = datetime.now().time()
+        if not ( hora_actual >= value.hora_inicio and hora_actual < value.hora_fin):
+            raise serializers.ValidationError('La sucursal se encuentra cerrada')
         return value
 
 
