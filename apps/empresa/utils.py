@@ -144,3 +144,13 @@ def validar_ubicacion_area(ubicacion, origen, radio):
         data['valido'] = True
         # data['distancia'] = distancia
     return data
+
+
+# calcular distancia entre ubicacion y latitudes-longitud
+def distancia_ubicacion_to_latlong(ubicacion, latitud, longitud):
+    _values = _get_values_ubicacion(ubicacion)
+    v1 = _values[0]
+    v2 = _values[1]
+    distancia = calcular_distancia(v1,v2,latitud,longitud)
+    return distancia
+    # return Decimal(distancia).quantize(Decimal('0.00001'),ROUND_HALF_UP)

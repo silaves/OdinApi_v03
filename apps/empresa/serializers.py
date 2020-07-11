@@ -3,17 +3,18 @@ import json
 from datetime import date
 from decimal import Decimal
 
+from django.core.cache import cache
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import make_naive
+from easy_thumbnails.templatetags.thumbnail import thumbnail_url
 
 from rest_framework import serializers
-from easy_thumbnails.templatetags.thumbnail import thumbnail_url
 
 from apps.autenticacion.models import Usuario, Ciudad, Horario
 from apps.autenticacion.serializers import PerfilSerializer, VerCiudad_Serializer
 from .models import Empresa, Sucursal, Combo, Producto, CategoriaEmpresa, Pedido, PedidoProducto,CategoriaProducto
-
+from .utils import distancia_ubicacion_to_latlong
 
 class CategoriaEmpresaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -141,6 +142,54 @@ class ShowSucursal_Serializer(serializers.Serializer):
             'foto_150':thumbnail_url(instance.foto, '150'),
             'foto_300':thumbnail_url(instance.foto, '300'),
             'foto_450':thumbnail_url(instance.foto, '450'),
+            # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
+            'empresa':{
+                'id':instance.empresa.id, 
+                'nombre':instance.empresa.nombre,
+                'descripcion':instance.empresa.descripcion,
+                'categoria':{
+                    'id':instance.empresa.categoria.id,
+                    'nombre':instance.empresa.categoria.nombre,
+                    'estado':instance.empresa.categoria.estado
+                }
+            },
+            'hora_inicio':instance.hora_inicio,
+            'hora_fin':instance.hora_fin,
+            'ciudad':{
+                'id':instance.ciudad.id,
+                'nombre':instance.ciudad.nombre,
+                'estado':instance.ciudad.estado,
+                'comision_porcentaje':str(instance.ciudad.comision_porcentaje)
+            },
+            'categoria':{
+                'id':instance.categoria.id,
+                'nombre':instance.categoria.nombre,
+                'codigo':instance.categoria.codigo
+            }
+        }
+
+
+class ShowSucursalDistancia_Serializer(serializers.Serializer):
+
+    def to_representation(self, instance):
+        lati = self.context.get('latitud')
+        longi = self.context.get('longitud')
+        
+        return {
+            'id':instance.id,
+            'nombre':instance.nombre,
+            'disponible':instance.disponible,
+            'estado':instance.estado,
+            'telefono':instance.telefono,
+            'ubicacion':instance.ubicacion,
+            'direccion':instance.direccion,
+            'calificacion':str(instance.calificacion.normalize()),
+            'cant_calificacion':instance.cant_calificacion,
+            'foto':instance.foto.url if instance.foto else None,
+            'foto_150':thumbnail_url(instance.foto, '150'),
+            'foto_300':thumbnail_url(instance.foto, '300'),
+            'foto_450':thumbnail_url(instance.foto, '450'),
+            'distancia':distancia_ubicacion_to_latlong(instance.ubicacion, lati, longi) if instance.ubicacion else None,
             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
             'empresa':{
                 'id':instance.empresa.id, 
@@ -346,6 +395,83 @@ class ShowProductoAdvanced_Serializer(serializers.Serializer): # revisar
             'dias_activos':instance.dias_activos,
             # 'combo':ShowProducto_Serializer( Producto.objects.select_related('sucursal','sucursal__empresa').filter(id__in=Combo.objects.filter(combo_id=obj.id).values('producto')), many=True ).data if instance.is_combo is True else False
         }
+
+
+
+# class ShowProductoAdvancedDistancia_Serializer(serializers.Serializer): # revisar
+#     def to_representation(self, instance):
+#         lati = self.context.get('latitud')
+#         longi = self.context.get('longitud')
+
+#         sucursales = dict()
+#         # sucursales[200]=1200
+#         distancia = None
+#         id_sucursal = instance.sucursal.id
+#         # print(id_sucursal)
+#         print(cache.get('sucursales_dis'))
+#         if cache.get('sucursales_dis'):
+#             ss = cache.get('sucursales_dis')
+#             print(ss,'   exste')
+#             if id_sucursal in ss:
+#                 distancia = ss[id_sucursal]
+#             else:
+#                 print('***********')
+#                 ubicacion = instance.sucursal.ubicacion
+#                 distancia = distancia_ubicacion_to_latlong(ubicacion, lati, longi) if ubicacion else None
+#                 sucursales[id_sucursal] = distancia
+#                 cache.set('sucursales_dis', sucursales, 60)
+#                 # sucursales.update( {id_sucursal : distancia} )
+#         else:    
+#             ubicacion = instance.sucursal.ubicacion
+#             distancia = distancia_ubicacion_to_latlong(ubicacion, lati, longi) if ubicacion else None
+#             sucursales[id_sucursal] = distancia
+#             cache.set('sucursales_dis', sucursales, 60)
+#             # sucursales.update( {id_sucursal : distancia} )
+        
+#         # print(sucursales)
+#         # print('----------------')
+#         return {
+#             'id':instance.id,
+#             'nombre':instance.nombre,
+#             'descripcion':instance.descripcion,
+#             'precio':str(instance.precio),
+#             'estado':instance.estado,
+#             'distancia':distancia,
+#             # 'creado':instance.creado,
+#             'sucursal':{
+#                 'id':instance.sucursal.id,
+#                 'nombre':instance.sucursal.nombre,
+#                 'disponible':instance.sucursal.disponible,
+#                 'estado':instance.sucursal.estado,
+#                 'telefono':instance.sucursal.telefono,
+#                 'ubicacion':instance.sucursal.ubicacion,
+#                 'direccion':instance.sucursal.direccion,
+#                 'foto':instance.sucursal.foto.url if instance.sucursal.foto else None,
+#                 # 'foto':self.context.get('request').build_absolute_uri(instance.sucursal.foto.url) if instance.sucursal.foto else None,
+#                 'empresa':{
+#                     'id':instance.sucursal.empresa.id, 
+#                     'nombre':instance.sucursal.empresa.nombre,
+#                     'descripcion':instance.sucursal.empresa.descripcion
+#                     },
+#                 'hora_inicio':instance.sucursal.hora_inicio,
+#                 'hora_fin':instance.sucursal.hora_fin
+#                 # 'ciudad':{
+#                 #     'id':instance.sucursal.ciudad.id,
+#                 #     'nombre':instance.sucursal.ciudad.nombre,
+#                 #     'estado':instance.sucursal.ciudad.estado
+#                 # }
+#             },
+#             'categoria':ShowCategoriaProducto_Serializer(instance.categoria).data,
+#             'foto':instance.foto.url if instance.foto else None,
+#             'foto_150':thumbnail_url(instance.foto, '150'),
+#             'foto_300':thumbnail_url(instance.foto, '300'),
+#             'foto_450':thumbnail_url(instance.foto, '450'),
+#             # 'foto':self.context.get('request').build_absolute_uri(instance.foto.url) if instance.foto else None,
+#             'is_combo':instance.is_combo,
+#             'calificacion':str(instance.calificacion.normalize()),
+#             'dias_activos':instance.dias_activos,
+#             # 'combo':ShowProducto_Serializer( Producto.objects.select_related('sucursal','sucursal__empresa').filter(id__in=Combo.objects.filter(combo_id=obj.id).values('producto')), many=True ).data if instance.is_combo is True else False
+#         }
 
 
 # class ProductoVerSerializer(serializers.ModelSerializer):
