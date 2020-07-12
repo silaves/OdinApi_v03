@@ -402,10 +402,10 @@ class ShowProductoAdvanced_Serializer(serializers.Serializer): # revisar
 
 class ShowProductoAdvancedDistancia_Serializer(serializers.Serializer): # revisar
     def to_representation(self, instance):
-        lati = self.context.get('latitud')
-        longi = self.context.get('longitud')
-        ubicacion = instance.sucursal.ubicacion
-        distancia = distancia_ubicacion_to_latlong(ubicacion, lati, longi) if ubicacion else None
+        # lati = self.context.get('latitud')
+        # longi = self.context.get('longitud')
+        # ubicacion = instance.sucursal.ubicacion
+        # distancia = distancia_ubicacion_to_latlong(ubicacion, lati, longi) if ubicacion else None
 
         return {
             'id':instance.id,
@@ -413,7 +413,7 @@ class ShowProductoAdvancedDistancia_Serializer(serializers.Serializer): # revisa
             'descripcion':instance.descripcion,
             'precio':str(instance.precio),
             'estado':instance.estado,
-            'distancia':distancia,
+            # 'distancia':distancia,
             # 'creado':instance.creado,
             'sucursal':{
                 'id':instance.sucursal.id,
