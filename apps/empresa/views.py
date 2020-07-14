@@ -1083,11 +1083,24 @@ def cambiar_pedido_en_finalizado(request, id_pedido):
     if pedido.estado == 'E':
         raise PermissionDenied('El pedido ya esta en curso')
     # revisar_propietario_sucursal(usuario,pedido.sucursal)
-    if request.user != pedido.repartidor:
+
+    # if request.user != pedido.repartidor:
+    #     raise PermissionDenied('Usted no esta autorizado')
+    # pedido.estado = 'F'
+    # pedido.save()
+    # crear_ranking(id_pedido, pedido.cliente.id)
+    if pedido.cliente == pedido.sucursal.empresa.empresario:
+        if request.user == pedido.sucursal.empresa.empresario:
+            pedido.estado = 'F'
+            pedido.save()
+        else:
+            raise PermissionDenied('Usted no esta autorizado')
+    elif request.user == pedido.repartidor:
+        pedido.estado = 'F'
+        pedido.save()
+        crear_ranking(id_pedido, pedido.cliente.id)
+    else:
         raise PermissionDenied('Usted no esta autorizado')
-    pedido.estado = 'F'
-    pedido.save()
-    crear_ranking(id_pedido, pedido.cliente.id)
     return Response({'mensaje':'El pedido ha sido finalizado'})
 
 
