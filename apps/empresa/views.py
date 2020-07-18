@@ -1852,6 +1852,11 @@ def crear_pedido_empresario(request):
         pedido.nota = obj.validated_data['nota']
     except:
         pass
+    # pedido.telefono_cliente = obj.validated_data['telefono_cliente']
+    try:
+        pedido.telefono_cliente = obj.validated_data['telefono_cliente']
+    except:
+        pass
     suc = obj.validated_data['sucursal']
     pedido.sucursal = suc
     dire = obj.validated_data['ubicacion']
@@ -1908,6 +1913,10 @@ def editar_pedido_empresario(request,id_pedido):
     obj.is_valid(raise_exception=True)
     try:
         pedido.nota = obj.validated_data['nota']
+    except:
+        pass
+    try:
+        pedido.telefono_cliente = obj.validated_data['telefono_cliente']
     except:
         pass
     try:

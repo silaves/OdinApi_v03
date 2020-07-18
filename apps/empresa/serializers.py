@@ -750,7 +750,7 @@ class CrearPedidoSerializer_Empresario(serializers.ModelSerializer):
 
     class Meta:
         model = Pedido
-        fields = ('sucursal','ubicacion','productos','nota')
+        fields = ('sucursal','ubicacion','productos','nota','telefono_cliente')
     
     def validate(self, data):
         try:
@@ -794,6 +794,12 @@ class CrearPedidoSerializer_Empresario(serializers.ModelSerializer):
         if len(value) < 1:
             raise serializers.ValidationError('El pedido debe tener al menos 1 producto.')
         return value
+    
+    def validate_telefono(self, value):
+        if value:
+            if len(str(value)) != 8:
+                raise serializers.ValidationError('Formato de numero de telefono incorrecto')
+        return value
 
 
 
@@ -805,7 +811,7 @@ class EditarPedidoSerializer_Empresario(serializers.ModelSerializer):
 
     class Meta:
         model = Pedido
-        fields = ('ubicacion','total','productos','nota')
+        fields = ('ubicacion','total','productos','nota','telefono_cliente')
     
     def validate(self, data):
         try:
@@ -848,6 +854,12 @@ class EditarPedidoSerializer_Empresario(serializers.ModelSerializer):
     def validate_productos(self, value):
         if len(value) < 1:
             raise serializers.ValidationError('El pedido debe tener al menos 1 producto.')
+        return value
+    
+    def validate_telefono(self, value):
+        if value:
+            if len(str(value)) != 8:
+                raise serializers.ValidationError('Formato de numero de telefono incorrecto')
         return value
 
 # FIN
@@ -986,6 +998,7 @@ class ShowPedido_Serializer(serializers.Serializer):
             'is_calificado_empresario':instance.is_calificado_empresario,
             'is_calificado_repartidor':instance.is_calificado_repartidor,
             'nota':instance.nota,
+            'telefono_cliente':instance.telefono_cliente,
             'sucursal':{
                 'id':instance.sucursal.id,
                 'nombre':instance.sucursal.nombre,
