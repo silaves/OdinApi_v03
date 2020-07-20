@@ -865,8 +865,8 @@ def getCategoria(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated,])
 def pre_pedido(request):
-    if not is_member(request.user, settings.GRUPO_CLIENTE):
-        raise PermissionDenied('No esta autorizado')
+    # if not is_member(request.user, settings.GRUPO_CLIENTE):
+    #     raise PermissionDenied('No esta autorizado')
     obj = CrearPedidoSerializer(data=request.data)
     obj.is_valid(raise_exception=True)
     # validar que el pedido se encuentre dentro del area
