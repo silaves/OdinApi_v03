@@ -2,7 +2,7 @@ import json
 import math
 import requests
 from django.conf import settings
-from decimal import Decimal, ROUND_HALF_UP,ROUND_UP,ROUND_DOWN
+from decimal import Decimal, ROUND_HALF_UP,ROUND_UP,ROUND_DOWN, ROUND_FLOOR, ROUND_CEILING, ROUND_HALF_DOWN, ROUND_HALF_EVEN
 from operator import itemgetter
 from apps.autenticacion.models import Ciudad,TarifaCostoEnvio
 
@@ -108,14 +108,26 @@ def _converter(value):
     v2 = val[1].split(':')[1]
     return v1+','+v2
 
+# def calcular_tarifa(origin, destination, ciudad):
+#     kmt = calculate_distance(_converter(origin), _converter(destination))
+#     result = ciudad.costo_min
+#     query = TarifaCostoEnvio.objects.filter(ciudad=ciudad, estado=True).order_by('-km_inicial')
+#     for c in query:
+#         if kmt >= c.km_inicial:
+#             result += (kmt-c.km_inicial) * c.costo
+#             kmt -= kmt-c.km_inicial
+#     return result.quantize(Decimal('0'),ROUND_DOWN)
+
 def calcular_tarifa(origin, destination, ciudad):
-    kmt = calculate_distance(_converter(origin), _converter(destination))
+    kmt = int(calculate_distance(_converter(origin), _converter(destination)))
+    # kmt = int(Decimal(23.80))
     result = ciudad.costo_min
     query = TarifaCostoEnvio.objects.filter(ciudad=ciudad, estado=True).order_by('-km_inicial')
     for c in query:
         if kmt >= c.km_inicial:
-            result += (kmt-c.km_inicial) * c.costo
-            kmt -= kmt-c.km_inicial
+            v = c.km_inicial-1
+            result += (kmt-v) * c.costo
+            kmt = v
     return result.quantize(Decimal('0'),ROUND_DOWN)
 
 
